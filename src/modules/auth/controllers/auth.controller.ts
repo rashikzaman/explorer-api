@@ -1,4 +1,4 @@
-import { Body, Get } from '@nestjs/common';
+import { Body, Get, HttpException, HttpStatus, UsePipes } from '@nestjs/common';
 import { Controller, Post, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from '../services/auth.service';
@@ -7,6 +7,11 @@ import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { LoginDto } from '../models/dto/login.dto';
 import { RegisterDto } from '../models/dto/register.dto';
 import { VerifyDto } from '../models/dto/verify.dto';
+import {
+  registrationSchema,
+  verificationSchema,
+} from '../validation-schemas/schemas';
+import { JoiValidationPipe } from 'src/validation.pipe';
 
 @Controller('auth')
 export class AuthController {
@@ -19,11 +24,26 @@ export class AuthController {
   }
 
   @Post('register')
+  @UsePipes(new JoiValidationPipe(registrationSchema))
   async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+    try {
+      const result = await this.authService.register(registerDto);
+      return result;
+    } catch (e) {
+      if (e.code === 'ER_DUP_ENTRY')
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: 'Duplicate Entry',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      else throw e;
+    }
   }
 
   @Post('verify')
+  @UsePipes(new JoiValidationPipe(verificationSchema))
   async verify(@Body() verifyDto: VerifyDto) {
     const result = await this.authService.verifyUser(verifyDto);
     if (result) return { success: true, message: 'User successfully verified' };

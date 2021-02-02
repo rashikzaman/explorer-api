@@ -25,7 +25,6 @@ export class UsersAuthService {
   async registerUser(user: RegisterDto): Promise<User | undefined> {
     const password = await this.hashPassword(user.password);
     const verificationCode = this.getVerificationCode();
-
     const result = await this.usersRepository.save({
       email: user.email,
       firstName: 'N/A',

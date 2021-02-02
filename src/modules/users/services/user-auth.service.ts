@@ -39,11 +39,13 @@ export class UsersAuthService {
   async verifyUser(verificationDto: VerifyDto): Promise<boolean | undefined> {
     const user = await this.usersRepository.findOne(
       { email: verificationDto.email },
-      { select: ['verificationCode'] },
+      { select: ['verificationCode', 'id'] },
     );
-    if (user && user.verificationCode === verificationDto.verificationCode)
+    if (user && user.verificationCode === verificationDto.verificationCode) {
+      user.isVerified = true;
+      await this.usersRepository.save(user);
       return true;
-    else return false;
+    } else return false;
   }
 
   async hashPassword(password): Promise<string> {

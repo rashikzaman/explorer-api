@@ -21,7 +21,7 @@ export class User {
   email: string;
 
   @Column({ default: true })
-  isActive: boolean;
+  isVerified: boolean;
 
   @Column({ select: false })
   password: string;

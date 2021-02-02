@@ -4,6 +4,7 @@ import { UsersAuthService } from 'src/modules/users/services/user-auth.service';
 import { UsersService } from '../../users/services/users.service';
 import { RegisterDto } from '../models/dto/register.dto';
 import * as bcrypt from 'bcrypt';
+import { VerifyDto } from '../models/dto/verify.dto';
 
 @Injectable()
 export class AuthService {
@@ -32,13 +33,16 @@ export class AuthService {
   }
 
   async register(user: RegisterDto) {
-    try {
-      const { password, ...result } = await this.userAuthService.registerUser(
-        user,
-      );
-      return result;
-    } catch (e) {
-      console.log(e);
-    }
+    const {
+      password,
+      verificationCode,
+      ...result
+    } = await this.userAuthService.registerUser(user);
+    return result;
+  }
+
+  async verifyUser(verifyDto: VerifyDto) {
+    const result = await this.userAuthService.verifyUser(verifyDto);
+    return result;
   }
 }

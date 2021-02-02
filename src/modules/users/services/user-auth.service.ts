@@ -6,6 +6,7 @@ import { RegisterDto } from 'src/modules/auth/models/dto/register.dto';
 import { Repository } from 'typeorm';
 import { User } from '../models/user.entity';
 import * as bcrypt from 'bcrypt';
+import { VerifyDto } from 'src/modules/auth/models/dto/verify.dto';
 
 @Injectable()
 export class UsersAuthService {
@@ -23,6 +24,7 @@ export class UsersAuthService {
 
   async registerUser(user: RegisterDto): Promise<User | undefined> {
     const password = await this.hashPassword(user.password);
+    const verificationCode = this.getVerificationCode();
 
     const result = await this.usersRepository.save({
       email: user.email,
@@ -30,11 +32,26 @@ export class UsersAuthService {
       lastName: 'N/A',
       isActive: false,
       password: password,
+      verificationCode: verificationCode,
     });
     return result;
   }
 
+  async verifyUser(verificationDto: VerifyDto): Promise<boolean | undefined> {
+    const user = await this.usersRepository.findOne(
+      { email: verificationDto.email },
+      { select: ['verificationCode'] },
+    );
+    if (user && user.verificationCode === verificationDto.verificationCode)
+      return true;
+    else return false;
+  }
+
   async hashPassword(password): Promise<string> {
     return bcrypt.hash(password, 6);
+  }
+
+  getVerificationCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 }

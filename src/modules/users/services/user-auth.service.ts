@@ -29,7 +29,7 @@ export class UsersAuthService {
       email: user.email,
       firstName: 'N/A',
       lastName: 'N/A',
-      isActive: false,
+      isVerified: false,
       password: password,
       verificationCode: verificationCode,
     });

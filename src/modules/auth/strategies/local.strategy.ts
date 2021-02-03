@@ -15,6 +15,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
     if (!user.isVerified) {
+      //if user is not verified, throw unauthorized exception
       throw new UnauthorizedException();
     }
     return user;

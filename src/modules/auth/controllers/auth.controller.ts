@@ -11,7 +11,7 @@ import {
   registrationSchema,
   verificationSchema,
 } from '../validation-schemas/schemas';
-import { JoiValidationPipe } from 'src/validation.pipe';
+import { JoiValidationPipe } from '../../../validation.pipe';
 
 @Controller('auth')
 export class AuthController {

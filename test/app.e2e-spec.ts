@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppModule } from '../../app.module';
+import { AppModule } from '../src/app.module';
 
-describe('User Service', () => {
+describe('App Api', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -28,9 +28,18 @@ describe('User Service', () => {
     await app.init();
   });
 
+  it(`/POST login`, () => {
+    return request(app.getHttpServer()).post('/auth/login').expect(401);
+  });
+
+  it(`/POST register`, () => {
+    return request(app.getHttpServer()).post('/auth/register').expect(400);
+  });
+
   it(`/GET profile`, () => {
     return request(app.getHttpServer()).get('/profile').expect(401);
   });
+
   afterAll(async () => {
     await app.close();
   });

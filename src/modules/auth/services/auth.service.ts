@@ -6,12 +6,15 @@ import { RegisterDto } from '../models/dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { VerifyDto } from '../models/dto/verify.dto';
 import { User } from 'src/modules/users/models/user.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { authEventsType } from '../events/auth-events';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userAuthService: UsersAuthService,
     private jwtService: JwtService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -43,6 +46,12 @@ export class AuthService {
 
   async register(user: User) {
     const result = await this.userAuthService.registerUser(user);
+
+    this.eventEmitter.emit(authEventsType.userRegistered, {
+      email: result.email,
+      verificationCode: result.verificationCode,
+    });
+
     return result;
   }
 

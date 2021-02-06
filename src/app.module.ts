@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { MailModule } from './modules/mail/mail.module';
 import 'reflect-metadata';
 
 @Module({
@@ -15,6 +16,7 @@ import 'reflect-metadata';
       isGlobal: true,
     }),
     TypeOrmModule.forRoot(),
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

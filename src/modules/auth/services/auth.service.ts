@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersAuthService } from '../../users/services/user-auth.service';
 import { UsersService } from '../../users/services/users.service';
 import { RegisterDto } from '../models/dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { VerifyDto } from '../models/dto/verify.dto';
+import { User } from 'src/modules/users/models/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -25,16 +26,24 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any) {
+  async login(email: string, password: string) {
+    const user = await this.validateUser(email, password);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    if (!user.isVerified) {
+      //if user is not verified, throw unauthorized exception
+      throw new UnauthorizedException();
+    }
     const payload = { id: user.id, sub: user.userId };
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  async register(user: RegisterDto) {
+  async register(user: User) {
     const {
-      password,
+      password: hashedPassword,
       verificationCode,
       ...result
     } = await this.userAuthService.registerUser(user);

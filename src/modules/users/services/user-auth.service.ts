@@ -22,15 +22,15 @@ export class UsersAuthService {
     );
   }
 
-  async registerUser(user: RegisterDto): Promise<User | undefined> {
-    const password = await this.hashPassword(user.password);
+  async registerUser(user: User): Promise<User | undefined> {
+    const hashedPassword = await this.hashPassword(user.password);
     const verificationCode = this.getVerificationCode();
     const result = await this.usersRepository.save({
       email: user.email,
-      firstName: 'N/A',
-      lastName: 'N/A',
+      firstName: user.firstName,
+      lastName: user.lastName,
       isVerified: false,
-      password: password,
+      password: hashedPassword,
       verificationCode: verificationCode,
     });
     return result;

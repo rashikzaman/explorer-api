@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Entity,
   Column,
@@ -24,8 +25,14 @@ export class User {
   isVerified: boolean;
 
   @Column({ select: false })
+  @Exclude()
   password: string;
 
   @Column({ select: false })
+  @Exclude()
   verificationCode: string;
+
+  constructor(partial: Partial<User>) {
+    Object.assign(this, partial);
+  }
 }

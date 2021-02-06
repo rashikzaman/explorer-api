@@ -30,6 +30,7 @@
     "@nestjs/swagger": "^4.7.12",
     "@nestjs/typeorm": "^7.1.5",
     "bcrypt": "^5.0.0",
+    "class-transformer": "^0.3.2",
     "joi": "^17.3.0",
     "mysql2": "^2.2.5",
     "passport": "^0.4.1",

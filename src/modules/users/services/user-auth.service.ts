@@ -36,12 +36,15 @@ export class UsersAuthService {
     return result;
   }
 
-  async verifyUser(verificationDto: VerifyDto): Promise<boolean | undefined> {
+  async verifyUser(
+    email: string,
+    verificationCode: string,
+  ): Promise<boolean | undefined> {
     const user = await this.usersRepository.findOne(
-      { email: verificationDto.email },
+      { email: email },
       { select: ['verificationCode', 'id'] },
     );
-    if (user && user.verificationCode === verificationDto.verificationCode) {
+    if (user && user.verificationCode === verificationCode) {
       user.isVerified = true;
       await this.usersRepository.save(user);
       return true;

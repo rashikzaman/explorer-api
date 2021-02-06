@@ -42,16 +42,15 @@ export class AuthService {
   }
 
   async register(user: User) {
-    const {
-      password: hashedPassword,
-      verificationCode,
-      ...result
-    } = await this.userAuthService.registerUser(user);
+    const result = await this.userAuthService.registerUser(user);
     return result;
   }
 
-  async verifyUser(verifyDto: VerifyDto) {
-    const result = await this.userAuthService.verifyUser(verifyDto);
+  async verifyUser(email: string, verificationCode: string) {
+    const result = await this.userAuthService.verifyUser(
+      email,
+      verificationCode,
+    );
     return result;
   }
 }

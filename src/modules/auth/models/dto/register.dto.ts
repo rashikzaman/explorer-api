@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { string } from 'joi';
+import { Expose } from 'class-transformer';
 
 export class RegisterDto {
   @ApiProperty({ type: String, description: 'email' })

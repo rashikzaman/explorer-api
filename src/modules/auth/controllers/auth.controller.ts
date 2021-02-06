@@ -1,17 +1,16 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Get,
   HttpCode,
   HttpException,
   HttpStatus,
   UnauthorizedException,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { Controller, Post, UseGuards, Request } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Post } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { LoginDto } from '../models/dto/login.dto';
 import { RegisterDto } from '../models/dto/register.dto';
 import { VerifyDto } from '../models/dto/verify.dto';
@@ -24,10 +23,10 @@ import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
   ApiOkResponse,
-  ApiResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { registerDtoToUser } from '../helpers/dtoToEntityHelpers';
+import { User } from '../../users/models/user.entity';
+import { plainToClass } from 'class-transformer';
 
 @Controller('auth')
 export class AuthController {
@@ -45,11 +44,14 @@ export class AuthController {
   @ApiCreatedResponse({ description: 'User Registered' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @UsePipes(new JoiValidationPipe(registrationSchema))
-  async register(@Body() registerDto: RegisterDto) {
+  @UseInterceptors(ClassSerializerInterceptor) //this will remove exclude entity property
+  async register(@Body() registerDto: RegisterDto): Promise<User> {
     try {
-      const user = registerDtoToUser(registerDto);
-      const result = await this.authService.register(user);
-      return result;
+      const userEntity = plainToClass(User, registerDto, {
+        ignoreDecorators: true,
+      });
+      const result = await this.authService.register(userEntity);
+      return new User(result);
     } catch (e) {
       if (e.code === 'ER_DUP_ENTRY')
         throw new HttpException(
@@ -69,7 +71,10 @@ export class AuthController {
   @Post('verify')
   @UsePipes(new JoiValidationPipe(verificationSchema))
   async verify(@Body() verifyDto: VerifyDto) {
-    const result = await this.authService.verifyUser(verifyDto);
+    const result = await this.authService.verifyUser(
+      verifyDto.email,
+      verifyDto.verificationCode,
+    );
     if (result) return { success: true, message: 'User successfully verified' };
     else throw new UnauthorizedException();
   }

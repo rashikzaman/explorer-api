@@ -50,6 +50,7 @@ export class AuthController {
     }
   }
 
+  @HttpCode(200)
   @Post('verify')
   @UsePipes(new JoiValidationPipe(verificationSchema))
   async verify(@Body() verifyDto: VerifyDto) {

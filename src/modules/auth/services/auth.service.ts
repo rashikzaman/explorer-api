@@ -62,4 +62,9 @@ export class AuthService {
     );
     return result;
   }
+
+  async searchMail(email: string) {
+    const result = await this.userAuthService.findOneByEmail(email);
+    return result;
+  }
 }

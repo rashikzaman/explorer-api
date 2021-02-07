@@ -5,6 +5,8 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
+  NotFoundException,
+  Req,
   UnauthorizedException,
   UseInterceptors,
   UsePipes,
@@ -22,11 +24,14 @@ import { JoiValidationPipe } from '../../../validation.pipe';
 import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
+  ApiProperty,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { User } from '../../users/models/user.entity';
 import { plainToClass } from 'class-transformer';
+import { SearchDto } from '../models/dto/search.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -77,5 +82,15 @@ export class AuthController {
     );
     if (result) return { success: true, message: 'User successfully verified' };
     else throw new UnauthorizedException();
+  }
+
+  @ApiOkResponse({ description: 'Email Exists' })
+  @ApiNotFoundResponse({ description: 'Email does not exist' })
+  @Post('search')
+  @ApiProperty()
+  async searchByEmail(@Body() searchDto: SearchDto) {
+    const result = await this.authService.searchMail(searchDto.email);
+    if (result) return { success: true, message: 'Email Exists' };
+    else throw new NotFoundException();
   }
 }

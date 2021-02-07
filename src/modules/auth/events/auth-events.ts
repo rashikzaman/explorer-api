@@ -12,9 +12,9 @@ export class AuthEvents {
 
   @OnEvent(authEventsType.userRegistered)
   handleUserRegistration(payload: { email: string; verificationCode: string }) {
-    this.mailService.sendMailWithVerificationCode(
-      payload.email,
-      payload.verificationCode,
-    );
+    // this.mailService.sendMailWithVerificationCode(
+    //   payload.email,
+    //   payload.verificationCode,
+    // );
   }
 }

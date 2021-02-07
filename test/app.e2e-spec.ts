@@ -64,6 +64,20 @@ describe('App Api', () => {
       .expect(200);
   });
 
+  it(`if email exists, then should return 200`, async () => {
+    return request(app.getHttpServer())
+      .post('/auth/search')
+      .send({ email: 'rashikzaman22@gmail.com' })
+      .expect(200);
+  });
+
+  it(`if email does not exist, then should return 404`, async () => {
+    return request(app.getHttpServer())
+      .post('/auth/search')
+      .send({ email: 'wer23444rashikzaman22@gmail.com' })
+      .expect(404);
+  });
+
   afterAll(async () => {
     await app.close();
   });

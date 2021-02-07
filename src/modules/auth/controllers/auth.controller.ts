@@ -84,6 +84,7 @@ export class AuthController {
     else throw new UnauthorizedException();
   }
 
+  @HttpCode(200)
   @ApiOkResponse({ description: 'Email Exists' })
   @ApiNotFoundResponse({ description: 'Email does not exist' })
   @Post('search')

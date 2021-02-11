@@ -1,21 +1,21 @@
+import { Exclude } from 'class-transformer';
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
   Unique,
   BeforeInsert,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity()
-export class WebsiteResourceType {
+export class Visibility {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  domain: string;
-
-  @Column()
-  resourceType: string;
+  @Column({ type: 'varchar', length: 50, nullable: false })
+  type: string;
 
   @Column({
     type: 'timestamp',

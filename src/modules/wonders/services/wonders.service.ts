@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateWonderDto } from './dto/create-wonder.dto';
-import { UpdateWonderDto } from './dto/update-wonder.dto';
+import { CreateWonderDto } from '../models/dto/create-wonder.dto';
+import { UpdateWonderDto } from '../models/dto/update-wonder.dto';
 
 @Injectable()
 export class WondersService {

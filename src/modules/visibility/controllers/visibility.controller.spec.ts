@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VisibilityController } from './visibility.controller';
-import { VisibilityService } from './visibility.service';
+import { VisibilityService } from '../services/visibility.service';
 
 describe('VisibilityController', () => {
   let controller: VisibilityController;

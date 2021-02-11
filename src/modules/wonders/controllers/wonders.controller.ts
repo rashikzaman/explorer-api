@@ -1,7 +1,15 @@
-import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
-import { WondersService } from './wonders.service';
-import { CreateWonderDto } from './dto/create-wonder.dto';
-import { UpdateWonderDto } from './dto/update-wonder.dto';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+} from '@nestjs/common';
+import { WondersService } from '../services/wonders.service';
+import { CreateWonderDto } from '../models/dto/create-wonder.dto';
+import { UpdateWonderDto } from '../models/dto/update-wonder.dto';
 
 @Controller('wonders')
 export class WondersController {

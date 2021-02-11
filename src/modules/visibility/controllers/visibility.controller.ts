@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { VisibilityService } from './visibility.service';
+import { VisibilityService } from '../services/visibility.service';
 
 @Controller('visibility')
 export class VisibilityController {

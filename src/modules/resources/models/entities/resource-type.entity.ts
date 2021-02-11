@@ -7,14 +7,15 @@ import {
   BeforeInsert,
   OneToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 
 @Entity()
-export class Visibility {
+export class ResourceType {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: false, unique: true })
+  @Column({ type: 'varchar', length: 100, nullable: false, unique: true })
   type: string;
 
   @Column({

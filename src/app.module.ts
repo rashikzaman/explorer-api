@@ -12,6 +12,7 @@ import { ResourcesModule } from './modules/resources/resources.module';
 import { WondersModule } from './modules/wonders/wonders.module';
 import { VisibilityModule } from './modules/visibility/visibility.module';
 import { WonderResourceModule } from './modules/wonder-resource/wonder-resource.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { WonderResourceModule } from './modules/wonder-resource/wonder-resource.
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    MulterModule.register({ dest: './public/uploads' }),
     TypeOrmModule.forRoot(),
     MailModule,
     EventEmitterModule.forRoot(),

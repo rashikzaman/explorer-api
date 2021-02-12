@@ -8,6 +8,8 @@ import {
   Delete,
   Req,
   Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
@@ -15,14 +17,32 @@ import { UpdateResourceDto } from '../models/dto/update-resource.dto';
 import { getMetadata } from 'page-metadata-parser';
 import * as domino from 'domino';
 import * as fetch from 'node-fetch';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
 
 @Controller('resources')
 export class ResourcesController {
   constructor(private readonly resourcesService: ResourcesService) {}
 
   @Post()
-  create(@Body() createResourceDto: CreateResourceDto) {
-    return this.resourcesService.create(createResourceDto);
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './public/uploads',
+        filename: (req, file, callback) => {
+          callback(null, Date.now() + path.extname(file.originalname));
+        },
+      }),
+    }),
+  )
+  create(
+    @Body() createResourceDto: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    console.log(file);
+    //return createResourceDto;
+    //return this.resourcesService.create(createResourceDto);
   }
 
   @Get()
@@ -55,10 +75,5 @@ export class ResourcesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.resourcesService.remove(+id);
-  }
-
-  @Post()
-  async postImage(@Body() data: any) {
-    return data;
   }
 }

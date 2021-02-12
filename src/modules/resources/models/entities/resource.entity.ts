@@ -1,4 +1,5 @@
 import { Exclude } from 'class-transformer';
+import { Visibility } from 'src/modules/visibility/models/entity/visibility.entity';
 import {
   Entity,
   Column,
@@ -11,6 +12,7 @@ import {
 } from 'typeorm';
 
 import { User } from '../../../users/models/user.entity';
+import { ResourceType } from './resource-type.entity';
 
 @Entity()
 export class Resource {
@@ -19,7 +21,7 @@ export class Resource {
   id: number;
 
   @OneToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn()
   user: User;
 
   @Column({ type: 'varchar', length: 100 })
@@ -32,20 +34,26 @@ export class Resource {
   url: string;
 
   @Column({ nullable: true, type: 'varchar', length: 100 })
-  audio_clip_link: string;
+  audioClipLink: string;
 
   @Column({ nullable: true, type: 'varchar', length: 100 })
-  image_link: string;
+  imageLink: string;
+
+  // @JoinColumn({ name: 'id' })
+  // visibilityId: Visibility;
+
+  // @JoinColumn({ name: 'id' })
+  // resourceTypeId: ResourceType;
 
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
   })
-  created_at: string;
+  createdAt: string;
 
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
   })
-  updated_at: string;
+  updatedAt: string;
 }

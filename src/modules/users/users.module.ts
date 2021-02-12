@@ -9,7 +9,7 @@ import { ProfileController } from './controllers/profile.controller';
 @Module({
   controllers: [UsersController, ProfileController],
   providers: [UsersService, UsersAuthService],
-  exports: [UsersService, UsersAuthService],
+  exports: [UsersService, UsersAuthService, TypeOrmModule],
   imports: [TypeOrmModule.forFeature([User])],
 })
 export class UsersModule {}

@@ -13,6 +13,8 @@ import { WondersModule } from './modules/wonders/wonders.module';
 import { VisibilityModule } from './modules/visibility/visibility.module';
 import { WonderResourceModule } from './modules/wonder-resource/wonder-resource.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -22,6 +24,9 @@ import { MulterModule } from '@nestjs/platform-express';
       isGlobal: true,
     }),
     MulterModule.register({ dest: './public/uploads' }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+    }),
     TypeOrmModule.forRoot(),
     MailModule,
     EventEmitterModule.forRoot(),

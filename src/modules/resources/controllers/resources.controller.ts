@@ -10,6 +10,9 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
+  Request,
+  UsePipes,
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
@@ -19,30 +22,39 @@ import * as domino from 'domino';
 import * as fetch from 'node-fetch';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import * as path from 'path';
+import { imageFileFilter, updateFileName } from '../../../utils/file-upload';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JoiValidationPipe } from '../../../validation.pipe';
+import { createResourceSchema } from '../validation-schemas/schemas';
 
 @Controller('resources')
 export class ResourcesController {
   constructor(private readonly resourcesService: ResourcesService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @UseInterceptors(
-    FileInterceptor('file', {
+    FileInterceptor('image', {
       storage: diskStorage({
         destination: './public/uploads',
-        filename: (req, file, callback) => {
-          callback(null, Date.now() + path.extname(file.originalname));
-        },
+        filename: updateFileName,
       }),
+      fileFilter: imageFileFilter,
     }),
   )
+  @UsePipes(new JoiValidationPipe(createResourceSchema))
   create(
-    @Body() createResourceDto: any,
+    @Body() createResourceDto: CreateResourceDto,
     @UploadedFile() file: Express.Multer.File,
+    @Request() req,
   ) {
-    console.log(file);
-    //return createResourceDto;
-    //return this.resourcesService.create(createResourceDto);
+    const filepath = file.path.replace(/\\/g, '/'); //remove double slashes
+    createResourceDto.image = filepath;
+    createResourceDto.userId = req.user.userId;
+    const result = this.resourcesService.create(createResourceDto);
+    return result;
   }
 
   @Get()

@@ -5,6 +5,8 @@
 .env
 ormconfig.json
 
+/public/uploads
+
 # Logs
 logs
 *.log

@@ -56,4 +56,9 @@ export class ResourcesController {
   remove(@Param('id') id: string) {
     return this.resourcesService.remove(+id);
   }
+
+  @Post()
+  async postImage(@Body() data: any) {
+    return data;
+  }
 }

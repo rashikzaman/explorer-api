@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { Visibility } from 'src/modules/visibility/models/entity/visibility.entity';
+import { Visibility } from '../../../visibility/models/entity/visibility.entity';
 import {
   Entity,
   Column,
@@ -9,6 +9,7 @@ import {
   OneToOne,
   JoinColumn,
   Index,
+  ManyToOne,
 } from 'typeorm';
 
 import { User } from '../../../users/models/user.entity';
@@ -20,7 +21,7 @@ export class Resource {
   @Index()
   id: number;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User)
   @JoinColumn()
   user: User;
 
@@ -38,6 +39,14 @@ export class Resource {
 
   @Column({ nullable: true, type: 'varchar', length: 100 })
   imageLink: string;
+
+  @ManyToOne(() => Visibility)
+  @JoinColumn()
+  visibility: Visibility;
+
+  @ManyToOne(() => ResourceType)
+  @JoinColumn()
+  resourceType: ResourceType;
 
   // @JoinColumn({ name: 'id' })
   // visibilityId: Visibility;

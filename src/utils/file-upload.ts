@@ -1,4 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import * as path from 'path';
 
 /**
@@ -27,3 +29,11 @@ export const updateFileName = (req, file, callback) => {
   const filename = Date.now() + path.extname(file.originalname);
   callback(null, filename);
 };
+
+export const imageFileUploadInterceptor = FileInterceptor('image', {
+  storage: diskStorage({
+    destination: './public/uploads',
+    filename: updateFileName,
+  }),
+  fileFilter: imageFileFilter,
+});

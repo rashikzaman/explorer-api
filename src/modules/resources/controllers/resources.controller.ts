@@ -22,11 +22,18 @@ import * as domino from 'domino';
 import * as fetch from 'node-fetch';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { imageFileFilter, updateFileName } from '../../../utils/file-upload';
+import {
+  imageFileFilter,
+  imageFileUploadInterceptor,
+  updateFileName,
+} from '../../../utils/file-upload';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JoiValidationPipe } from '../../../validation.pipe';
-import { createResourceSchema } from '../validation-schemas/schemas';
+import {
+  createResourceSchema,
+  updateResourceSchema,
+} from '../validation-schemas/schemas';
 
 @Controller('resources')
 export class ResourcesController {
@@ -35,15 +42,7 @@ export class ResourcesController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './public/uploads',
-        filename: updateFileName,
-      }),
-      fileFilter: imageFileFilter,
-    }),
-  )
+  @UseInterceptors(imageFileUploadInterceptor)
   @UsePipes(new JoiValidationPipe(createResourceSchema))
   create(
     @Body() createResourceDto: CreateResourceDto,
@@ -77,15 +76,26 @@ export class ResourcesController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(imageFileUploadInterceptor)
+  @UsePipes(new JoiValidationPipe(updateResourceSchema))
   update(
     @Param('id') id: string,
     @Body() updateResourceDto: UpdateResourceDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req: any,
   ) {
+    const filepath = file.path.replace(/\\/g, '/'); //remove double slashes
+    updateResourceDto.image = filepath;
+    updateResourceDto.userId = req.user.userId;
     return this.resourcesService.update(+id, updateResourceDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.resourcesService.remove(+id);
+  async remove(@Param('id') id: string) {
+    const result = await this.resourcesService.remove(+id);
+    if (result) return { message: 'Resource deleted', status: 'success' };
+    else return { message: "Can't delete the resource", status: 'failure' };
   }
 }

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../users/models/user.entity';
@@ -52,19 +56,58 @@ export class ResourcesService {
     return resource;
   }
 
-  findAll() {
-    return `This action returns all resources`;
+  async findAll(): Promise<Resource[] | undefined> {
+    const result = await this.resourceRepository.find({
+      relations: ['resourceType', 'visibility'],
+    });
+    return result;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} resource`;
+  async findOne(id: number): Promise<Resource | any> {
+    const resource = await this.resourceRepository.findOne(id, {
+      relations: ['resourceType', 'visibility'],
+    });
+    if (!resource) throw new NotFoundException();
+    return resource;
   }
 
-  update(id: number, updateResourceDto: UpdateResourceDto) {
-    return `This action updates a #${id} resource`;
+  async update(
+    id: number,
+    updateResourceDto: UpdateResourceDto,
+  ): Promise<Resource> {
+    const resource = await this.resourceRepository.findOne(id);
+    if (!resource) throw new NotFoundException('Resource not found!');
+
+    const user = await this.userRepository.findOne(updateResourceDto.userId);
+    const resourceType = await this.resourceTypeRepository.findOne(
+      updateResourceDto.resourceTypeId,
+    );
+    const visibility = await this.visibilityRepository.findOne(
+      updateResourceDto.visibilityTypeId,
+    );
+
+    if (!resourceType)
+      throw new BadRequestException({ message: 'Resource type not found' });
+
+    if (!visibility)
+      throw new BadRequestException({
+        message: 'Visibility type not found',
+      });
+
+    resource.title = updateResourceDto.title;
+    resource.url = updateResourceDto.url;
+    resource.user = user;
+    resource.visibility = visibility;
+    resource.description = updateResourceDto.description;
+    resource.imageLink = updateResourceDto.image;
+    const result = await this.resourceRepository.save(resource);
+
+    return result;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} resource`;
+  async remove(id: number) {
+    const result = await this.resourceRepository.delete(id);
+    if (result && result.affected === 0) throw new NotFoundException();
+    return result;
   }
 }

@@ -15,6 +15,7 @@ export class JoiValidationPipe implements PipeTransform {
 
     const { error } = this.schema.validate(value, { abortEarly: false });
     if (error) {
+      //console.log(error);
       throw new BadRequestException(error.message);
     }
     return value;

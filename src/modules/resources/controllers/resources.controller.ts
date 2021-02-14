@@ -13,6 +13,7 @@ import {
   UseGuards,
   Request,
   UsePipes,
+  HttpCode,
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
@@ -49,7 +50,8 @@ export class ResourcesController {
     @UploadedFile() file: Express.Multer.File,
     @Request() req,
   ) {
-    const filepath = file.path.replace(/\\/g, '/'); //remove double slashes
+    let filepath = null;
+    if (file) filepath = file.path.replace(/\\/g, '/'); //remove double slashes
     createResourceDto.image = filepath;
     createResourceDto.userId = req.user.userId;
     const result = this.resourcesService.create(createResourceDto);
@@ -75,6 +77,7 @@ export class ResourcesController {
     return this.resourcesService.findOne(+id);
   }
 
+  @HttpCode(200)
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -86,12 +89,14 @@ export class ResourcesController {
     @UploadedFile() file: Express.Multer.File,
     @Request() req: any,
   ) {
-    const filepath = file.path.replace(/\\/g, '/'); //remove double slashes
+    let filepath = null;
+    if (file) filepath = file.path.replace(/\\/g, '/'); //remove double slashes
     updateResourceDto.image = filepath;
     updateResourceDto.userId = req.user.userId;
     return this.resourcesService.update(+id, updateResourceDto);
   }
 
+  @HttpCode(200)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const result = await this.resourcesService.remove(+id);

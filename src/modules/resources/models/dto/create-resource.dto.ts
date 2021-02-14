@@ -37,4 +37,11 @@ export class CreateResourceDto {
     required: false,
   })
   image: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Audio Clip',
+    required: false,
+  })
+  audioClip: string;
 }

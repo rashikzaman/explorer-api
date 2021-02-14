@@ -50,6 +50,7 @@ export class ResourcesService {
       visibility: visibility,
       resourceType: resourceType,
       imageLink: createResourceDto.image,
+      audioClipLink: createResourceDto.audioClip,
       url: createResourceDto.url,
     });
 

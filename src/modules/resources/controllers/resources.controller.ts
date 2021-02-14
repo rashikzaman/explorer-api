@@ -14,6 +14,7 @@ import {
   Request,
   UsePipes,
   HttpCode,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
@@ -21,11 +22,17 @@ import { UpdateResourceDto } from '../models/dto/update-resource.dto';
 import { getMetadata } from 'page-metadata-parser';
 import * as domino from 'domino';
 import * as fetch from 'node-fetch';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import {
+  audioFileUploadInterceptor,
   imageFileFilter,
   imageFileUploadInterceptor,
+  resourceFileDestinationUploader,
+  resourceFileFilter,
   updateFileName,
 } from '../../../utils/file-upload';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -43,16 +50,36 @@ export class ResourcesController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @UseInterceptors(imageFileUploadInterceptor)
-  @UsePipes(new JoiValidationPipe(createResourceSchema))
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'image', maxCount: 1 },
+        { name: 'audioClip', maxCount: 1 },
+      ],
+      {
+        storage: diskStorage({
+          destination: resourceFileDestinationUploader,
+          filename: updateFileName,
+        }),
+      },
+    ),
+  )
+  //@UsePipes(new JoiValidationPipe(createResourceSchema))
   create(
     @Body() createResourceDto: CreateResourceDto,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files,
     @Request() req,
   ) {
-    let filepath = null;
-    if (file) filepath = file.path.replace(/\\/g, '/'); //remove double slashes
-    createResourceDto.image = filepath;
+    let imagePath = null;
+    let audioClipPath = null;
+    if (files) {
+      imagePath = files.image ? files.image[0].path.replace(/\\/g, '/') : null;
+      audioClipPath = files.audioClip
+        ? files.audioClip[0].path.replace(/\\/g, '/')
+        : null;
+    }
+    createResourceDto.image = imagePath;
+    createResourceDto.audioClip = audioClipPath;
     createResourceDto.userId = req.user.userId;
     const result = this.resourcesService.create(createResourceDto);
     return result;

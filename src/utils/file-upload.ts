@@ -3,6 +3,26 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 
+export const RESOURCE_IMAGE_PATH = './public/uploads/resources/images';
+export const RESOURCE_AUDIO_CLIP_PATH =
+  './public/uploads/resources/audio-clips';
+
+export const resourceFileFilter = (req, file, callback) => {
+  if (file.fieldname === 'image') {
+    return imageFileFilter(req, file, callback);
+  } else if (file.fieldname === 'audioClip') {
+    callback(null, true);
+  }
+};
+
+export const resourceFileDestinationUploader = (req, file, callback) => {
+  if (file.fieldname === 'image') {
+    callback(null, RESOURCE_IMAGE_PATH);
+  } else if (file.fieldname === 'audioClip') {
+    callback(null, RESOURCE_AUDIO_CLIP_PATH);
+  }
+};
+
 /**
  * Only allow image type file
  * @param req
@@ -30,10 +50,19 @@ export const updateFileName = (req, file, callback) => {
   callback(null, filename);
 };
 
+// export const resourceFileUploadInterceptor = FileInterceptor()
+
 export const imageFileUploadInterceptor = FileInterceptor('image', {
   storage: diskStorage({
-    destination: './public/uploads',
+    destination: './public/uploads/images',
     filename: updateFileName,
   }),
   fileFilter: imageFileFilter,
+});
+
+export const audioFileUploadInterceptor = FileInterceptor('audioClip', {
+  storage: diskStorage({
+    destination: './public/uploads/audio-clips',
+    filename: updateFileName,
+  }),
 });

@@ -12,10 +12,9 @@ export class JoiValidationPipe implements PipeTransform {
 
   transform(value: any, metadata: ArgumentMetadata) {
     if (typeof value !== 'object') return value; //otherwise this tries to validate parameter
-
     const { error } = this.schema.validate(value, { abortEarly: false });
     if (error) {
-      //console.log(error);
+      console.log(error);
       throw new BadRequestException(error.message);
     }
     return value;

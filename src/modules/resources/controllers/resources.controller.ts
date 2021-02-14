@@ -64,7 +64,7 @@ export class ResourcesController {
       },
     ),
   )
-  //@UsePipes(new JoiValidationPipe(createResourceSchema))
+  @UsePipes(new JoiValidationPipe(createResourceSchema))
   create(
     @Body() createResourceDto: CreateResourceDto,
     @UploadedFiles() files,

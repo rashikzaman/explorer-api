@@ -101,6 +101,7 @@ export class ResourcesService {
     resource.visibility = visibility;
     resource.description = updateResourceDto.description;
     resource.imageLink = updateResourceDto.image;
+    resource.audioClipLink = updateResourceDto.audioClip;
     const result = await this.resourceRepository.save(resource);
 
     return result;

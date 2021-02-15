@@ -33,6 +33,7 @@ import {
   imageFileUploadInterceptor,
   resourceFileDestinationUploader,
   resourceFileFilter,
+  resourceFileUploadInterceptor,
   updateFileName,
 } from '../../../utils/file-upload';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -50,20 +51,7 @@ export class ResourcesController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'image', maxCount: 1 },
-        { name: 'audioClip', maxCount: 1 },
-      ],
-      {
-        storage: diskStorage({
-          destination: resourceFileDestinationUploader,
-          filename: updateFileName,
-        }),
-      },
-    ),
-  )
+  @UseInterceptors(resourceFileUploadInterceptor)
   @UsePipes(new JoiValidationPipe(createResourceSchema))
   create(
     @Body() createResourceDto: CreateResourceDto,
@@ -108,17 +96,24 @@ export class ResourcesController {
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @UseInterceptors(imageFileUploadInterceptor)
+  @UseInterceptors(resourceFileUploadInterceptor)
   @UsePipes(new JoiValidationPipe(updateResourceSchema))
   update(
     @Param('id') id: string,
     @Body() updateResourceDto: UpdateResourceDto,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files,
     @Request() req: any,
   ) {
-    let filepath = null;
-    if (file) filepath = file.path.replace(/\\/g, '/'); //remove double slashes
-    updateResourceDto.image = filepath;
+    let imagePath = null;
+    let audioClipPath = null;
+    if (files) {
+      imagePath = files.image ? files.image[0].path.replace(/\\/g, '/') : null;
+      audioClipPath = files.audioClip
+        ? files.audioClip[0].path.replace(/\\/g, '/')
+        : null;
+    }
+    updateResourceDto.image = imagePath;
+    updateResourceDto.audioClip = audioClipPath;
     updateResourceDto.userId = req.user.userId;
     return this.resourcesService.update(+id, updateResourceDto);
   }

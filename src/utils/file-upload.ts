@@ -1,5 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 
@@ -54,7 +57,7 @@ export const updateFileName = (req, file, callback) => {
 
 export const imageFileUploadInterceptor = FileInterceptor('image', {
   storage: diskStorage({
-    destination: './public/uploads/images',
+    destination: RESOURCE_IMAGE_PATH,
     filename: updateFileName,
   }),
   fileFilter: imageFileFilter,
@@ -62,7 +65,20 @@ export const imageFileUploadInterceptor = FileInterceptor('image', {
 
 export const audioFileUploadInterceptor = FileInterceptor('audioClip', {
   storage: diskStorage({
-    destination: './public/uploads/audio-clips',
+    destination: RESOURCE_AUDIO_CLIP_PATH,
     filename: updateFileName,
   }),
 });
+
+export const resourceFileUploadInterceptor = FileFieldsInterceptor(
+  [
+    { name: 'image', maxCount: 1 },
+    { name: 'audioClip', maxCount: 1 },
+  ],
+  {
+    storage: diskStorage({
+      destination: resourceFileDestinationUploader,
+      filename: updateFileName,
+    }),
+  },
+);

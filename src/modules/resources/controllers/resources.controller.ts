@@ -6,10 +6,8 @@ import {
   Put,
   Param,
   Delete,
-  Req,
   Query,
   UseInterceptors,
-  UploadedFile,
   UseGuards,
   Request,
   UsePipes,
@@ -22,20 +20,7 @@ import { UpdateResourceDto } from '../models/dto/update-resource.dto';
 import { getMetadata } from 'page-metadata-parser';
 import * as domino from 'domino';
 import * as fetch from 'node-fetch';
-import {
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import {
-  audioFileUploadInterceptor,
-  imageFileFilter,
-  imageFileUploadInterceptor,
-  resourceFileDestinationUploader,
-  resourceFileFilter,
-  resourceFileUploadInterceptor,
-  updateFileName,
-} from '../../../utils/file-upload';
+import { resourceFileUploadInterceptor } from '../../../utils/file-upload';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JoiValidationPipe } from '../../../validation.pipe';

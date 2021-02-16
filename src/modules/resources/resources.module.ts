@@ -8,10 +8,12 @@ import { User } from '../users/models/user.entity';
 import { UsersModule } from '../users/users.module';
 import { Visibility } from '../visibility/models/entity/visibility.entity';
 import { ResourceType } from './models/entities/resource-type.entity';
+import { ResourceTypesController } from './controllers/resource-types.controller';
+import { ResourceTypesService } from './services/resource-types.service';
 
 @Module({
-  controllers: [ResourcesController],
-  providers: [ResourcesService],
+  controllers: [ResourcesController, ResourceTypesController],
+  providers: [ResourcesService, ResourceTypesService],
   imports: [
     TypeOrmModule.forFeature([
       WebsiteResourceType,

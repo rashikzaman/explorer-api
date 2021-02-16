@@ -33,30 +33,28 @@ import {
 export class ResourcesController {
   constructor(private readonly resourcesService: ResourcesService) {}
 
-  @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @UseInterceptors(resourceFileUploadInterceptor)
-  @UsePipes(new JoiValidationPipe(createResourceSchema))
-  create(
-    @Body() createResourceDto: CreateResourceDto,
-    @UploadedFiles() files,
-    @Request() req,
-  ) {
-    let imagePath = null;
-    let audioClipPath = null;
-    if (files) {
-      imagePath = files.image ? files.image[0].path.replace(/\\/g, '/') : null;
-      audioClipPath = files.audioClip
-        ? files.audioClip[0].path.replace(/\\/g, '/')
-        : null;
-    }
-    createResourceDto.image = imagePath;
-    createResourceDto.audioClip = audioClipPath;
-    createResourceDto.userId = req.user.userId;
-    const result = this.resourcesService.create(createResourceDto);
-    return result;
-  }
+  // @Post()
+  // @UseInterceptors(resourceFileUploadInterceptor)
+  // @UsePipes(new JoiValidationPipe(createResourceSchema))
+  // create(
+  //   @Body() createResourceDto: CreateResourceDto,
+  //   @UploadedFiles() files,
+  //   @Request() req,
+  // ) {
+  //   let imagePath = null;
+  //   let audioClipPath = null;
+  //   if (files) {
+  //     imagePath = files.image ? files.image[0].path.replace(/\\/g, '/') : null;
+  //     audioClipPath = files.audioClip
+  //       ? files.audioClip[0].path.replace(/\\/g, '/')
+  //       : null;
+  //   }
+  //   createResourceDto.image = imagePath;
+  //   createResourceDto.audioClip = audioClipPath;
+  //   createResourceDto.userId = req.user.userId;
+  //   const result = this.resourcesService.create(createResourceDto);
+  //   return result;
+  // }
 
   @Get()
   findAll() {
@@ -77,31 +75,29 @@ export class ResourcesController {
     return this.resourcesService.findOne(+id);
   }
 
-  @HttpCode(200)
-  @Put(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @UseInterceptors(resourceFileUploadInterceptor)
-  @UsePipes(new JoiValidationPipe(updateResourceSchema))
-  update(
-    @Param('id') id: string,
-    @Body() updateResourceDto: UpdateResourceDto,
-    @UploadedFiles() files,
-    @Request() req: any,
-  ) {
-    let imagePath = null;
-    let audioClipPath = null;
-    if (files) {
-      imagePath = files.image ? files.image[0].path.replace(/\\/g, '/') : null;
-      audioClipPath = files.audioClip
-        ? files.audioClip[0].path.replace(/\\/g, '/')
-        : null;
-    }
-    updateResourceDto.image = imagePath;
-    updateResourceDto.audioClip = audioClipPath;
-    updateResourceDto.userId = req.user.userId;
-    return this.resourcesService.update(+id, updateResourceDto);
-  }
+  // @HttpCode(200)
+  // @Put(':id')
+  // @UseInterceptors(resourceFileUploadInterceptor)
+  // @UsePipes(new JoiValidationPipe(updateResourceSchema))
+  // update(
+  //   @Param('id') id: string,
+  //   @Body() updateResourceDto: UpdateResourceDto,
+  //   @UploadedFiles() files,
+  //   @Request() req: any,
+  // ) {
+  //   let imagePath = null;
+  //   let audioClipPath = null;
+  //   if (files) {
+  //     imagePath = files.image ? files.image[0].path.replace(/\\/g, '/') : null;
+  //     audioClipPath = files.audioClip
+  //       ? files.audioClip[0].path.replace(/\\/g, '/')
+  //       : null;
+  //   }
+  //   updateResourceDto.image = imagePath;
+  //   updateResourceDto.audioClip = audioClipPath;
+  //   updateResourceDto.userId = req.user.userId;
+  //   return this.resourcesService.update(+id, updateResourceDto);
+  // }
 
   @HttpCode(200)
   @Delete(':id')

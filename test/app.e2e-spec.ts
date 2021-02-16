@@ -86,50 +86,50 @@ describe('App Api', () => {
 
   /** Resources Begin */
 
-  it(`if requesting without proper authorization, it should return 401`, () => {
-    return request(app.getHttpServer()).post('/resources').expect(401);
-  });
+  // it(`if requesting without proper authorization, it should return 401`, () => {
+  //   return request(app.getHttpServer()).post('/resources').expect(401);
+  // });
 
-  it(`if requesting without required request body, it should return 400`, () => {
-    return request(app.getHttpServer())
-      .post('/resources')
-      .set('Authorization', `Bearer ${jwtToken}`)
-      .expect(400);
-  });
+  // it(`Resource: if requesting without required request body, it should return 400`, () => {
+  //   return request(app.getHttpServer())
+  //     .post('/resources')
+  //     .set('Authorization', `Bearer ${jwtToken}`)
+  //     .expect(400);
+  // });
 
-  it(`if requesting with required request body, it should return 201`, async () => {
-    const result = await request(app.getHttpServer())
-      .post('/resources')
-      .send({
-        title: 'test resource',
-        resourceTypeId: '1',
-        visibilityTypeId: '3',
-      })
-      .set('Authorization', `Bearer ${jwtToken}`);
-    expect(result.status).toBe(201);
-    resourceId = result.body.id;
-  });
+  // it(`Resource: if requesting with required request body, it should return 201`, async () => {
+  //   const result = await request(app.getHttpServer())
+  //     .post('/resources')
+  //     .send({
+  //       title: 'test resource',
+  //       resourceTypeId: '1',
+  //       visibilityTypeId: '3',
+  //     })
+  //     .set('Authorization', `Bearer ${jwtToken}`);
+  //   expect(result.status).toBe(201);
+  //   resourceId = result.body.id;
+  // });
 
-  it(`if requesting all resources, it should return 200`, async () => {
-    const result = await request(app.getHttpServer())
-      .get('/resources')
-      .set('Authorization', `Bearer ${jwtToken}`);
-    expect(result.status).toBe(200);
-  });
+  // it(`Resource: if requesting all resources, it should return 200`, async () => {
+  //   const result = await request(app.getHttpServer())
+  //     .get('/resources')
+  //     .set('Authorization', `Bearer ${jwtToken}`);
+  //   expect(result.status).toBe(200);
+  // });
 
-  it(`if requesting one resources with parameter, it should return 200`, async () => {
-    const result = await request(app.getHttpServer())
-      .get(`/resources/${resourceId}`)
-      .set('Authorization', `Bearer ${jwtToken}`);
-    expect(result.status).toBe(200);
-  });
+  // it(`Resource: if requesting one resources with parameter, it should return 200`, async () => {
+  //   const result = await request(app.getHttpServer())
+  //     .get(`/resources/${resourceId}`)
+  //     .set('Authorization', `Bearer ${jwtToken}`);
+  //   expect(result.status).toBe(200);
+  // });
 
-  it(`if deleting one resource with parameter, it should return 200`, async () => {
-    const result = await request(app.getHttpServer())
-      .delete(`/resources/${resourceId}`)
-      .set('Authorization', `Bearer ${jwtToken}`);
-    expect(result.status).toBe(200);
-  });
+  // it(`Resource: if deleting one resource with parameter, it should return 200`, async () => {
+  //   const result = await request(app.getHttpServer())
+  //     .delete(`/resources/${resourceId}`)
+  //     .set('Authorization', `Bearer ${jwtToken}`);
+  //   expect(result.status).toBe(200);
+  // });
 
   /** Resources End */
 

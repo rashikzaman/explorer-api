@@ -2,8 +2,8 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../users/models/user.entity';
 import { Repository } from 'typeorm';
@@ -23,7 +23,6 @@ export class ResourcesService {
     private visibilityRepository: Repository<Visibility>,
     @InjectRepository(ResourceType)
     private resourceTypeRepository: Repository<ResourceType>,
-    private configService: ConfigService,
   ) {}
 
   async create(
@@ -57,16 +56,29 @@ export class ResourcesService {
     return resource;
   }
 
-  async findAll(): Promise<Resource[] | undefined> {
+  /**
+   * @param string userId
+   */
+  async findAll(userId: string = null): Promise<Resource[] | undefined> {
+    const user = await this.getUser(userId);
+
     const result = await this.resourceRepository.find({
-      relations: ['resourceType', 'visibility'],
+      relations: ['resourceType', 'visibility', 'user'],
+      where: { ...(user && { user: user }) },
     });
     return result;
   }
 
-  async findOne(id: number): Promise<Resource | any> {
+  /**
+   *
+   * @param string id
+   * @param user userId
+   */
+  async findOne(id: number, userId: string = null): Promise<Resource | any> {
+    const user = await this.getUser(userId);
     const resource = await this.resourceRepository.findOne(id, {
-      relations: ['resourceType', 'visibility'],
+      relations: ['resourceType', 'visibility', 'user'],
+      where: { ...(user && { user: user }) },
     });
     if (!resource) throw new NotFoundException();
     return resource;
@@ -76,10 +88,15 @@ export class ResourcesService {
     id: number,
     updateResourceDto: UpdateResourceDto,
   ): Promise<Resource> {
-    const resource = await this.resourceRepository.findOne(id);
+    const resource = await this.resourceRepository.findOne(id, {
+      relations: ['user'],
+    });
     if (!resource) throw new NotFoundException('Resource not found!');
 
     const user = await this.userRepository.findOne(updateResourceDto.userId);
+
+    if (resource.user.id !== user.id) throw new UnauthorizedException(); //resource user must be equal to user who is updating it, otherwise throw unauthorized exception
+
     const resourceType = await this.resourceTypeRepository.findOne(
       updateResourceDto.resourceTypeId,
     );
@@ -107,9 +124,24 @@ export class ResourcesService {
     return result;
   }
 
-  async remove(id: number) {
+  async remove(id: number, userId: string = null) {
+    const user = await this.getUser(userId);
+    const resource = await this.resourceRepository.findOne(id, {
+      relations: ['user'],
+    });
+
+    if (user) {
+      if (resource.user.id !== user.id) throw new UnauthorizedException(); //resource user must be equal to user who is deleting it, otherwise throw unauthorized exception
+    }
+
     const result = await this.resourceRepository.delete(id);
     if (result && result.affected === 0) throw new NotFoundException();
     return result;
+  }
+
+  async getUser(userId): Promise<User | null> {
+    if (!userId) return null;
+    const user = this.userRepository.findOne(userId);
+    return user;
   }
 }

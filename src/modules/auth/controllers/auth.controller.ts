@@ -24,6 +24,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiProperty,
+  ApiQuery,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { User } from '../../users/models/user.entity';
@@ -41,11 +42,11 @@ export class AuthController {
     return this.authService.login(loginDto.email, loginDto.password);
   }
 
-  @Post('register')
   @ApiCreatedResponse({ description: 'User Registered' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @UsePipes(new JoiValidationPipe(registrationSchema))
   @UseInterceptors(ClassSerializerInterceptor) //this will remove exclude entity property
+  @Post('register')
   async register(@Body() registerDto: RegisterDto): Promise<User> {
     try {
       const userEntity = plainToClass(User, registerDto, {
@@ -69,6 +70,8 @@ export class AuthController {
   @HttpCode(200)
   @ApiOkResponse({ description: 'User is verified' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiQuery({ name: 'email', type: String })
+  @ApiQuery({ name: 'verificationCode', type: String })
   @Get('verify')
   async verify(
     @Query('email') email,
@@ -85,8 +88,9 @@ export class AuthController {
   @HttpCode(200)
   @ApiOkResponse({ description: 'Email Exists' })
   @ApiNotFoundResponse({ description: 'Email does not exist' })
+  @ApiQuery({ name: 'email', type: String })
+  @ApiQuery({ name: 'email', type: String })
   @Get('search')
-  @ApiProperty()
   async searchByEmail(@Query('email') email) {
     if (!email) throw new BadRequestException('Email is required');
 

@@ -66,15 +66,13 @@ describe('App Api', () => {
 
   it(`if email exists, then should return 200`, async () => {
     return request(app.getHttpServer())
-      .post('/auth/search')
-      .send({ email: 'rashikzaman22@gmail.com' })
+      .get(`/auth/search?email=rashikzaman22@gmail.com`)
       .expect(200);
   });
 
   it(`if email does not exist, then should return 404`, async () => {
     return request(app.getHttpServer())
-      .post('/auth/search')
-      .send({ email: 'wer23444rashikzaman22@gmail.com' })
+      .get(`/auth/search?email=rashikzaman22222222@gmail.com`)
       .expect(404);
   });
 

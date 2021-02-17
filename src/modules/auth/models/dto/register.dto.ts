@@ -8,8 +8,6 @@ export class RegisterDto {
   password: string;
   @ApiProperty({ type: String, description: 'confirmPassword' })
   confirmPassword: string;
-  @ApiProperty({ type: String, description: 'firstname', required: false })
-  firstName: string;
-  @ApiProperty({ type: String, description: 'lastname', required: false })
-  lastName: string;
+  @ApiProperty({ type: String, description: 'username', required: false })
+  username: string;
 }

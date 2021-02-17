@@ -6,7 +6,6 @@ import { RegisterDto } from 'src/modules/auth/models/dto/register.dto';
 import { Repository } from 'typeorm';
 import { User } from '../models/user.entity';
 import * as bcrypt from 'bcrypt';
-import { VerifyDto } from 'src/modules/auth/models/dto/verify.dto';
 
 @Injectable()
 export class UsersAuthService {
@@ -18,7 +17,7 @@ export class UsersAuthService {
   async findOneByEmail(email: string): Promise<User | undefined> {
     return this.usersRepository.findOne(
       { email: email },
-      { select: ['password', 'email', 'id', 'isVerified'] },
+      { select: ['password', 'email', 'id', 'isVerified', 'username'] },
     );
   }
 
@@ -27,8 +26,7 @@ export class UsersAuthService {
     const verificationCode = this.getVerificationCode();
     const result = await this.usersRepository.save({
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      username: user.username,
       isVerified: false,
       password: hashedPassword,
       verificationCode: verificationCode,

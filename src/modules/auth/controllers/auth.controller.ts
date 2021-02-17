@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ClassSerializerInterceptor,
   Get,
@@ -6,7 +7,7 @@ import {
   HttpException,
   HttpStatus,
   NotFoundException,
-  Req,
+  Query,
   UnauthorizedException,
   UseInterceptors,
   UsePipes,
@@ -15,11 +16,7 @@ import { Controller, Post } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../models/dto/login.dto';
 import { RegisterDto } from '../models/dto/register.dto';
-import { VerifyDto } from '../models/dto/verify.dto';
-import {
-  registrationSchema,
-  verificationSchema,
-} from '../validation-schemas/schemas';
+import { registrationSchema } from '../validation-schemas/schemas';
 import { JoiValidationPipe } from '../../../validation.pipe';
 import {
   ApiBadRequestResponse,
@@ -31,7 +28,6 @@ import {
 } from '@nestjs/swagger';
 import { User } from '../../users/models/user.entity';
 import { plainToClass } from 'class-transformer';
-import { SearchDto } from '../models/dto/search.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -73,13 +69,15 @@ export class AuthController {
   @HttpCode(200)
   @ApiOkResponse({ description: 'User is verified' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
-  @Post('verify')
-  @UsePipes(new JoiValidationPipe(verificationSchema))
-  async verify(@Body() verifyDto: VerifyDto) {
-    const result = await this.authService.verifyUser(
-      verifyDto.email,
-      verifyDto.verificationCode,
-    );
+  @Get('verify')
+  async verify(
+    @Query('email') email,
+    @Query('verificationCode') verificationCode,
+  ) {
+    if (!email || !verificationCode)
+      throw new BadRequestException('Email and Verification code required');
+
+    const result = await this.authService.verifyUser(email, verificationCode);
     if (result) return { success: true, message: 'User successfully verified' };
     else throw new UnauthorizedException();
   }
@@ -87,11 +85,18 @@ export class AuthController {
   @HttpCode(200)
   @ApiOkResponse({ description: 'Email Exists' })
   @ApiNotFoundResponse({ description: 'Email does not exist' })
-  @Post('search')
+  @Get('search')
   @ApiProperty()
-  async searchByEmail(@Body() searchDto: SearchDto) {
-    const result = await this.authService.searchMail(searchDto.email);
-    if (result) return { success: true, message: 'Email Exists' };
+  async searchByEmail(@Query('email') email) {
+    if (!email) throw new BadRequestException('Email is required');
+
+    const result = await this.authService.searchMail(email);
+    if (result)
+      return {
+        success: true,
+        message: 'Email Exists',
+        username: result.username,
+      };
     else throw new NotFoundException();
   }
 }

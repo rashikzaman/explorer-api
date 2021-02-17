@@ -11,14 +11,21 @@ import { ResourceType } from './models/entities/resource-type.entity';
 import { ResourceTypesController } from './controllers/resource-types.controller';
 import { ResourceTypesService } from './services/resource-types.service';
 import { UserResourcesController } from './controllers/user-resources.controller';
+import { WebsiteResourceTypeController } from './controllers/website-resource-type.controller';
+import { WebsiteResourceTypeService } from './services/website-resource-type.service';
 
 @Module({
   controllers: [
     ResourcesController,
     ResourceTypesController,
     UserResourcesController,
+    WebsiteResourceTypeController,
   ],
-  providers: [ResourcesService, ResourceTypesService],
+  providers: [
+    ResourcesService,
+    ResourceTypesService,
+    WebsiteResourceTypeService,
+  ],
   imports: [
     TypeOrmModule.forFeature([
       WebsiteResourceType,

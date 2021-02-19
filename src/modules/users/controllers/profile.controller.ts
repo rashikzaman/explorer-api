@@ -11,6 +11,7 @@ export class ProfileController {
   @ApiBearerAuth()
   @Get('profile')
   getProfile(@Request() req) {
+    console.log('ee', req.user.userId);
     return this.usersService.findOne(req.user.userId);
   }
 }

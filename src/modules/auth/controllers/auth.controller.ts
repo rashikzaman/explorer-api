@@ -68,24 +68,6 @@ export class AuthController {
   }
 
   @HttpCode(200)
-  @ApiOkResponse({ description: 'User is verified' })
-  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
-  @ApiQuery({ name: 'email', type: String })
-  @ApiQuery({ name: 'verificationCode', type: String })
-  @Get('verify')
-  async verify(
-    @Query('email') email,
-    @Query('verificationCode') verificationCode,
-  ) {
-    if (!email || !verificationCode)
-      throw new BadRequestException('Email and Verification code required');
-
-    const result = await this.authService.verifyUser(email, verificationCode);
-    if (result) return { success: true, message: 'User successfully verified' };
-    else throw new UnauthorizedException();
-  }
-
-  @HttpCode(200)
   @ApiOkResponse({ description: 'Email Exists' })
   @ApiNotFoundResponse({ description: 'Email does not exist' })
   @ApiQuery({ name: 'email', type: String })
@@ -101,6 +83,30 @@ export class AuthController {
         message: 'Email Exists',
         username: result.username,
       };
-    else throw new NotFoundException();
+    else {
+      await this.authService.createTempVerificationCode(email);
+      throw new NotFoundException();
+    }
+  }
+
+  @HttpCode(200)
+  @ApiOkResponse({ description: 'Temp User Email is verified' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiQuery({ name: 'email', type: String })
+  @ApiQuery({ name: 'verificationCode', type: String })
+  @Get('temp-email-verification')
+  async verifyTempEmail(
+    @Query('email') email,
+    @Query('verificationCode') verificationCode,
+  ) {
+    if (!email || !verificationCode)
+      throw new BadRequestException('Email and Verification code required');
+
+    const result = await this.authService.verifyTempEmail(
+      email,
+      verificationCode,
+    );
+    if (result) return { success: true, message: 'User successfully verified' };
+    else throw new UnauthorizedException();
   }
 }

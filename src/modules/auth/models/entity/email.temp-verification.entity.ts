@@ -8,24 +8,13 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class User {
+export class EmailTempVerification {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column()
-  username: string;
 
   @Column({ unique: true })
   email: string;
 
-  @Column({ default: true })
-  isVerified: boolean;
-
   @Column({ select: false })
-  @Exclude()
-  password: string;
-
-  constructor(partial: Partial<User>) {
-    Object.assign(this, partial);
-  }
+  verificationCode: string;
 }

@@ -18,7 +18,7 @@ describe('App Api', () => {
           password: '',
           database: 'wondered-db', //need to change this database
           entities: ['src/**/*.entity{.ts,.js}'],
-          synchronize: true,
+          synchronize: false,
         }),
         AppModule,
       ],

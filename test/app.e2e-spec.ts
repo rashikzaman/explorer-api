@@ -26,7 +26,11 @@ describe('App Api', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
-    await app.init();
+    try {
+      await app.init();
+    } catch (e) {
+      console.log('App Initialization Failed', e);
+    }
   });
 
   let jwtToken: any;

@@ -12,6 +12,8 @@ import { ConfigService } from '@nestjs/config';
 import { AuthEvents } from './events/auth-events';
 import { MailModule } from '../mail/mail.module';
 import { MailService } from '../mail/mail.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { EmailTempVerification } from './models/entity/email.temp-verification.entity';
 
 @Module({
   controllers: [AuthController],
@@ -27,6 +29,7 @@ import { MailService } from '../mail/mail.service';
       },
       inject: [ConfigService],
     }),
+    TypeOrmModule.forFeature([EmailTempVerification]),
   ],
   exports: [AuthService, JwtModule],
 })

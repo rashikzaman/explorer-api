@@ -23,37 +23,15 @@ export class UsersAuthService {
 
   async registerUser(user: User): Promise<User | undefined> {
     const hashedPassword = await this.hashPassword(user.password);
-    const verificationCode = this.getVerificationCode();
     const result = await this.usersRepository.save({
       email: user.email,
       username: user.username,
-      isVerified: false,
       password: hashedPassword,
-      verificationCode: verificationCode,
     });
     return result;
   }
 
-  async verifyUser(
-    email: string,
-    verificationCode: string,
-  ): Promise<boolean | undefined> {
-    const user = await this.usersRepository.findOne(
-      { email: email },
-      { select: ['verificationCode', 'id'] },
-    );
-    if (user && user.verificationCode === verificationCode) {
-      user.isVerified = true;
-      await this.usersRepository.save(user);
-      return true;
-    } else return false;
-  }
-
   async hashPassword(password): Promise<string> {
     return bcrypt.hash(password, 6);
-  }
-
-  getVerificationCode(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 }

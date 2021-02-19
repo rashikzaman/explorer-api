@@ -22,6 +22,18 @@ export class User {
   @Exclude()
   password: string;
 
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: string;
+
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  updatedAt: string;
+
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
   }

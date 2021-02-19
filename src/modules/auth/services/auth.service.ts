@@ -42,10 +42,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException();
     }
-    if (!user.isVerified) {
-      //if user is not verified, throw unauthorized exception
-      throw new UnauthorizedException();
-    }
+
     const payload = { id: user.id, sub: user.userId };
     return {
       access_token: this.jwtService.sign(payload),

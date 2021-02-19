@@ -17,7 +17,7 @@ export class UsersAuthService {
   async findOneByEmail(email: string): Promise<User | undefined> {
     return this.usersRepository.findOne(
       { email: email },
-      { select: ['password', 'email', 'id', 'isVerified', 'username'] },
+      { select: ['password', 'email', 'id', 'username'] },
     );
   }
 

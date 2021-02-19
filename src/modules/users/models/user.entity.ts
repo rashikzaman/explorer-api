@@ -18,12 +18,21 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ default: true })
-  isVerified: boolean;
-
   @Column({ select: false })
   @Exclude()
   password: string;
+
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: string;
+
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  updatedAt: string;
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);

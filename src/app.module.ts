@@ -15,6 +15,8 @@ import { WonderResourceModule } from './modules/wonder-resource/wonder-resource.
 import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { WonderModule } from './modules/wonder/wonder.module';
+import { CoreModule } from './modules/core/core.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { join } from 'path';
     WondersModule,
     VisibilityModule,
     WonderResourceModule,
+    WonderModule,
+    CoreModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -89,19 +89,19 @@ describe('App Api', () => {
   /** Resources Begin */
 
   it(`if requesting without proper authorization, it should return 401`, () => {
-    return request(app.getHttpServer()).post('/user-resources').expect(401);
+    return request(app.getHttpServer()).post('/resources').expect(401);
   });
 
   it(`Resource: if requesting without required request body, it should return 400`, () => {
     return request(app.getHttpServer())
-      .post('/user-resources')
+      .post('/resources')
       .set('Authorization', `Bearer ${jwtToken}`)
       .expect(400);
   });
 
   it(`Resource: if requesting with required request body, it should return 201`, async () => {
     const result = await request(app.getHttpServer())
-      .post('/user-resources')
+      .post('/resources')
       .send({
         title: 'test resource',
         resourceTypeId: '1',
@@ -114,21 +114,21 @@ describe('App Api', () => {
 
   it(`Resource: if requesting all resources, it should return 200`, async () => {
     const result = await request(app.getHttpServer())
-      .get('/user-resources')
+      .get('/resources')
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(result.status).toBe(200);
   });
 
   it(`Resource: if requesting one resources with parameter, it should return 200`, async () => {
     const result = await request(app.getHttpServer())
-      .get(`/user-resources/${resourceId}`)
+      .get(`/resources/${resourceId}`)
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(result.status).toBe(200);
   });
 
   it(`Resource: if deleting one resource with parameter, it should return 200`, async () => {
     const result = await request(app.getHttpServer())
-      .delete(`/user-resources/${resourceId}`)
+      .delete(`/resources/${resourceId}`)
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(result.status).toBe(200);
   });

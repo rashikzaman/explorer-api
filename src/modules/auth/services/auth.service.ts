@@ -42,7 +42,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException();
     }
-    const payload = { id: user.id };
+    const payload = { id: user.id, user: true };
     const accessToken = this.createAccessToken(payload);
     return {
       accessToken: accessToken,

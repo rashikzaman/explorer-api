@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ResourcesService } from './services/resources.service';
-import { ResourcesController } from './controllers//resources.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WebsiteResourceType } from './models/entities/website-resource-type.entity';
 import { Resource } from './models/entities/resource.entity';
@@ -10,7 +9,7 @@ import { Visibility } from '../visibility/models/entity/visibility.entity';
 import { ResourceType } from './models/entities/resource-type.entity';
 import { ResourceTypesController } from './controllers/resource-types.controller';
 import { ResourceTypesService } from './services/resource-types.service';
-import { UserResourcesController } from './controllers/user-resources.controller';
+import { ResourcesController } from './controllers/resources.controller';
 import { WebsiteResourceTypeController } from './controllers/website-resource-type.controller';
 import { WebsiteResourceTypeService } from './services/website-resource-type.service';
 
@@ -18,7 +17,6 @@ import { WebsiteResourceTypeService } from './services/website-resource-type.ser
   controllers: [
     ResourcesController,
     ResourceTypesController,
-    UserResourcesController,
     WebsiteResourceTypeController,
   ],
   providers: [

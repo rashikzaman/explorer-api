@@ -42,10 +42,10 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException();
     }
-
-    const payload = { id: user.id, sub: user.userId };
+    const payload = { id: user.id };
+    const accessToken = this.createAccessToken(payload);
     return {
-      access_token: this.jwtService.sign(payload),
+      accessToken: accessToken,
     };
   }
 
@@ -93,5 +93,10 @@ export class AuthService {
 
   getVerificationCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  createAccessToken(payload): string {
+    const accessToken = this.jwtService.sign(payload);
+    return accessToken;
   }
 }

@@ -55,7 +55,7 @@ describe('App Api', () => {
       .post('/auth/login')
       .send({ email: 'rashikzaman22@gmail.com', password: '123456' });
     expect(res.status).toBe(200);
-    jwtToken = res.body.access_token; //saving jwtToken for future reference
+    jwtToken = res.body.accessToken; //saving jwtToken for future reference
   });
 
   it(`Auth: if email or password incorrect, it should return 401`, async () => {

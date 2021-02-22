@@ -47,13 +47,16 @@ export class AuthController {
   @UsePipes(new JoiValidationPipe(registrationSchema))
   @UseInterceptors(ClassSerializerInterceptor) //this will remove exclude entity property
   @Post('register')
-  async register(@Body() registerDto: RegisterDto): Promise<User> {
+  async register(@Body() registerDto: RegisterDto): Promise<any> {
     try {
       const userEntity = plainToClass(User, registerDto, {
         ignoreDecorators: true,
       });
       const result = await this.authService.register(userEntity);
-      return new User(result);
+      const accessToken = this.authService.createAccessToken({ id: result.id });
+      return {
+        accessToken: accessToken,
+      };
     } catch (e) {
       if (e.code === 'ER_DUP_ENTRY')
         throw new HttpException(

@@ -1,4 +1,5 @@
 import { Exclude } from 'class-transformer';
+import { BasicEntity } from '../../../core/models/entities/basic.entity';
 import {
   Entity,
   Column,
@@ -13,27 +14,14 @@ import {
 import { User } from '../../../users/models/user.entity';
 
 @Entity()
-export class Wonder {
-  @PrimaryGeneratedColumn()
-  @Index()
-  id: number;
-
-  @Column()
+export class Wonder extends BasicEntity {
+  @Column({ type: 'varchar', length: '100' })
   title: string;
+
+  @Column({ type: 'text' })
+  description: string;
 
   @OneToOne(() => User)
   @JoinColumn({ name: 'userId' })
   user: User;
-
-  @Column({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
-  createdAt: string;
-
-  @Column({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
-  updatedAt: string;
 }

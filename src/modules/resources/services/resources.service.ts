@@ -130,6 +130,8 @@ export class ResourcesService {
       relations: ['user'],
     });
 
+    if (!resource) throw new NotFoundException();
+
     if (user) {
       if (resource.user.id !== user.id) throw new UnauthorizedException(); //resource user must be equal to user who is deleting it, otherwise throw unauthorized exception
     }

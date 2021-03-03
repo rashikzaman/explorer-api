@@ -11,6 +11,7 @@ import {
   UsePipes,
   Request,
   UploadedFile,
+  HttpCode,
 } from '@nestjs/common';
 import { WondersService } from '../services/wonders.service';
 import { CreateWonderDto } from '../models/dto/create-wonder.dto';
@@ -19,6 +20,8 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { wonderCoverPhotoUploadInterceptor } from 'src/utils/file-upload';
@@ -48,13 +51,23 @@ export class WondersController {
   }
 
   @Get()
-  findAll() {
-    return this.wondersService.findAll();
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse()
+  @ApiOkResponse()
+  @ApiNotFoundResponse()
+  findAll(@Request() req) {
+    return this.wondersService.findAll(req.user.userId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.wondersService.findOne(+id);
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse()
+  @ApiOkResponse()
+  @ApiNotFoundResponse()
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.wondersService.findOne(+id, req.user.userId);
   }
 
   @Put(':id')
@@ -63,7 +76,15 @@ export class WondersController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.wondersService.remove(+id);
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse()
+  @ApiOkResponse()
+  @ApiNotFoundResponse()
+  remove(@Param('id') id: string, @Request() req) {
+    const result = this.wondersService.remove(+id, req.user.userId);
+    if (result) return { message: 'Resource deleted', status: 'success' };
+    else return { message: "Can't delete the resource", status: 'failure' };
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateWonderDto } from '../models/dto/create-wonder.dto';
@@ -14,9 +18,7 @@ export class WondersService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
-  async create(
-    createWonderDto: CreateWonderDto,
-  ): Promise<Wonder | undefined | string> {
+  async create(createWonderDto: CreateWonderDto): Promise<Wonder | undefined> {
     const user = await this.userRepository.findOne(createWonderDto.userId);
 
     const wonder = await this.wonderRepository.save({
@@ -29,15 +31,24 @@ export class WondersService {
     return wonder;
   }
 
-  async findAll(): Promise<Wonder[] | undefined | string> {
+  async findAll(userId: string): Promise<Wonder[] | undefined> {
+    const user = await this.getUser(userId);
     const wonders = await this.wonderRepository.find({
       relations: ['user', 'visibility'],
+      where: { ...(user && { user: user }) },
     });
+
     return wonders;
   }
 
-  async findOne(id: number): Promise<Wonder | undefined | string> {
-    return `This action returns a #${id} wonder`;
+  async findOne(id: number, userId: string): Promise<Wonder | undefined> {
+    const user = await this.getUser(userId);
+    const wonder = await this.wonderRepository.findOne(id, {
+      relations: ['user', 'visibility'],
+      where: { ...(user && { user: user }) },
+    });
+    if (!wonder) throw new NotFoundException();
+    return wonder;
   }
 
   async update(
@@ -47,7 +58,27 @@ export class WondersService {
     return `This action updates a #${id} wonder`;
   }
 
-  async remove(id: number): Promise<any> {
-    return `This action removes a #${id} wonder`;
+  async remove(id: number, userId: string): Promise<any> {
+    const user = await this.getUser(userId);
+    const wonder = await this.wonderRepository.findOne(id, {
+      relations: ['user'],
+    });
+
+    if (!wonder) throw new NotFoundException();
+
+    if (user) {
+      if (wonder.user.id !== user.id) throw new UnauthorizedException(); //Wonder user must be equal to user who is deleting it, otherwise throw unauthorized exception
+    }
+
+    const result = await this.wonderRepository.delete(id);
+    if (!result || result.affected === 0) throw new NotFoundException();
+
+    return result;
+  }
+
+  async getUser(userId): Promise<User | null> {
+    if (!userId) return null;
+    const user = this.userRepository.findOne(userId);
+    return user;
   }
 }

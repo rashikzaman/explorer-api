@@ -3,10 +3,11 @@ import { WondersService } from './services/wonders.service';
 import { WondersController } from './controllers/wonders.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Wonder } from './models/entities/wonder.entity';
+import { User } from '../users/models/user.entity';
 
 @Module({
   controllers: [WondersController],
   providers: [WondersService],
-  imports: [TypeOrmModule.forFeature([Wonder])],
+  imports: [TypeOrmModule.forFeature([Wonder, User])],
 })
 export class WondersModule {}

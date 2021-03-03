@@ -11,6 +11,7 @@ export class Wonder1614016987238 implements MigrationInterface {
             name: 'id',
             type: 'int',
             isPrimary: true,
+            generationStrategy: 'increment',
           },
           {
             name: 'title',
@@ -24,6 +25,15 @@ export class Wonder1614016987238 implements MigrationInterface {
           },
           {
             name: 'userId',
+            type: 'int',
+          },
+          {
+            name: 'coverPhotoUrl',
+            type: 'varchar',
+            length: '255',
+          },
+          {
+            name: 'visibilityId',
             type: 'int',
           },
           {
@@ -44,6 +54,12 @@ export class Wonder1614016987238 implements MigrationInterface {
             columnNames: ['userId'],
             referencedColumnNames: ['id'],
             referencedTableName: 'user',
+          },
+          {
+            name: 'visibility',
+            columnNames: ['visibilityId'],
+            referencedColumnNames: ['id'],
+            referencedTableName: 'visibility',
           },
         ],
       }),

@@ -9,12 +9,17 @@ import {
   OneToOne,
   JoinColumn,
   Index,
+  ManyToOne,
 } from 'typeorm';
 
 import { User } from '../../../users/models/user.entity';
+import { Visibility } from '../../../visibility/models/entity/visibility.entity';
 
 @Entity()
-export class Wonder extends BasicEntity {
+export class Wonder {
+  @PrimaryGeneratedColumn()
+  id: number;
+
   @Column({ type: 'varchar', length: '100' })
   title: string;
 
@@ -24,4 +29,23 @@ export class Wonder extends BasicEntity {
   @OneToOne(() => User)
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  @Column({ type: 'varchar', length: '255' })
+  coverPhotoUrl: string;
+
+  @ManyToOne(() => Visibility)
+  @JoinColumn()
+  visibility: Visibility;
+
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: string;
+
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  updatedAt: string;
 }

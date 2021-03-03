@@ -9,6 +9,7 @@ import * as path from 'path';
 export const RESOURCE_IMAGE_PATH = './public/uploads/resources/images';
 export const RESOURCE_AUDIO_CLIP_PATH =
   './public/uploads/resources/audio-clips';
+export const WONDER_COVER_PHOTO_PATH = './public/uploads/wonders/cover-photos';
 
 export const resourceFileFilter = (req, file, callback) => {
   if (file.fieldname === 'image') {
@@ -82,3 +83,11 @@ export const resourceFileUploadInterceptor = FileFieldsInterceptor(
     }),
   },
 );
+
+export const wonderCoverPhotoUploadInterceptor = FileInterceptor('coverPhoto', {
+  storage: diskStorage({
+    destination: WONDER_COVER_PHOTO_PATH,
+    filename: updateFileName,
+  }),
+  fileFilter: imageFileFilter,
+});

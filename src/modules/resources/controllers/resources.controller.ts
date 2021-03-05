@@ -6,12 +6,9 @@ import {
   Put,
   Param,
   Delete,
-  Query,
   UseInterceptors,
-  UseGuards,
   Request,
   UsePipes,
-  HttpCode,
   UploadedFiles,
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
@@ -21,29 +18,25 @@ import { getMetadata } from 'page-metadata-parser';
 import * as domino from 'domino';
 import * as fetch from 'node-fetch';
 import { resourceFileUploadInterceptor } from '../../../utils/file-upload';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import {
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
 import { JoiValidationPipe } from '../../../validation.pipe';
 import {
   createResourceSchema,
   updateResourceSchema,
 } from '../validation-schemas/schemas';
+import {
+  UserAuthCreate,
+  UserAuthDelete,
+  UserAuthFind,
+  UserAuthUpdate,
+  UserAuthFindAll,
+} from 'src/modules/core/decorators/auth.decorator';
 
 @Controller('resources')
 export class ResourcesController {
   constructor(private readonly resourcesService: ResourcesService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiUnauthorizedResponse()
-  @ApiCreatedResponse()
+  @UserAuthCreate()
   @UseInterceptors(resourceFileUploadInterceptor)
   @UsePipes(new JoiValidationPipe(createResourceSchema))
   create(
@@ -67,32 +60,19 @@ export class ResourcesController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiUnauthorizedResponse()
-  @ApiOkResponse()
-  @ApiNotFoundResponse()
+  @UserAuthFindAll()
   findAll(@Request() req) {
     return this.resourcesService.findAll(req.user.userId);
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiUnauthorizedResponse()
-  @ApiOkResponse()
-  @ApiNotFoundResponse()
+  @UserAuthFind()
   findOne(@Param('id') id: string, @Request() req) {
     return this.resourcesService.findOne(+id, req.user.userId);
   }
 
-  @HttpCode(200)
   @Put(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse()
-  @ApiUnauthorizedResponse()
-  @ApiNotFoundResponse()
+  @UserAuthUpdate()
   @UseInterceptors(resourceFileUploadInterceptor)
   @UsePipes(new JoiValidationPipe(updateResourceSchema))
   update(
@@ -115,12 +95,7 @@ export class ResourcesController {
     return this.resourcesService.update(+id, updateResourceDto);
   }
 
-  @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiUnauthorizedResponse()
-  @ApiOkResponse()
-  @ApiNotFoundResponse()
+  @UserAuthDelete()
   @Delete(':id')
   async remove(@Param('id') id: string, @Request() req: any) {
     const result = await this.resourcesService.remove(+id, req.user.userId);

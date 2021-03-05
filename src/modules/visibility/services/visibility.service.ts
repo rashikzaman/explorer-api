@@ -14,4 +14,9 @@ export class VisibilityService {
     const visibilities = await this.visibilityRepository.find({});
     return visibilities;
   }
+
+  async getVisibility(id: number): Promise<Visibility | undefined> {
+    const visibility = await this.visibilityRepository.findOne(id);
+    return visibility;
+  }
 }

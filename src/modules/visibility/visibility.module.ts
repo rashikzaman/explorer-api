@@ -8,6 +8,6 @@ import { Visibility } from './models/entity/visibility.entity';
   controllers: [VisibilityController],
   providers: [VisibilityService],
   imports: [TypeOrmModule.forFeature([Visibility])],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, VisibilityService],
 })
 export class VisibilityModule {}

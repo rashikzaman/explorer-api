@@ -41,11 +41,11 @@ export class Wonder {
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
   })
-  createdAt: string;
+  createdAt: Date;
 
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
   })
-  updatedAt: string;
+  updatedAt: Date;
 }

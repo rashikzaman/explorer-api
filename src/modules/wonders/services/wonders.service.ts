@@ -9,6 +9,7 @@ import { CreateWonderDto } from '../models/dto/create-wonder.dto';
 import { UpdateWonderDto } from '../models/dto/update-wonder.dto';
 import { Wonder } from '../models/entities/wonder.entity';
 import { User } from '../../users/models/user.entity';
+import { VisibilityService } from 'src/modules/visibility/services/visibility.service';
 
 @Injectable()
 export class WondersService {
@@ -16,6 +17,7 @@ export class WondersService {
     @InjectRepository(Wonder)
     private wonderRepository: Repository<Wonder>,
     @InjectRepository(User) private userRepository: Repository<User>,
+    private visibilityService: VisibilityService,
   ) {}
 
   async create(createWonderDto: CreateWonderDto): Promise<Wonder | undefined> {
@@ -54,25 +56,27 @@ export class WondersService {
   async update(
     id: number,
     updateWonderDto: UpdateWonderDto,
-  ): Promise<Wonder | undefined | string> {
-    return `This action updates a #${id} wonder`;
+  ): Promise<Wonder | undefined> {
+    const wonder = await this.findOne(id, updateWonderDto.userId.toString());
+    const visibility = await this.visibilityService.getVisibility(
+      updateWonderDto.visibilityId,
+    );
+
+    if (!visibility) throw new NotFoundException('Visiblity type not found');
+
+    wonder.title = updateWonderDto.title;
+    wonder.description = updateWonderDto.description;
+    wonder.coverPhotoUrl = updateWonderDto.coverPhoto ?? wonder.coverPhotoUrl; // if request converphoto is null, don't insert it
+    wonder.visibility = visibility;
+    wonder.updatedAt = new Date();
+    const result = await this.wonderRepository.save(wonder);
+    return result;
   }
 
   async remove(id: number, userId: string): Promise<any> {
-    const user = await this.getUser(userId);
-    const wonder = await this.wonderRepository.findOne(id, {
-      relations: ['user'],
-    });
-
-    if (!wonder) throw new NotFoundException();
-
-    if (user) {
-      if (wonder.user.id !== user.id) throw new UnauthorizedException(); //Wonder user must be equal to user who is deleting it, otherwise throw unauthorized exception
-    }
-
+    await this.findOne(id, userId);
     const result = await this.wonderRepository.delete(id);
     if (!result || result.affected === 0) throw new NotFoundException();
-
     return result;
   }
 

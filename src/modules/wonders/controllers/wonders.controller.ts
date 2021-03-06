@@ -6,27 +6,20 @@ import {
   Put,
   Param,
   Delete,
-  UseGuards,
   UseInterceptors,
   UsePipes,
   Request,
   UploadedFile,
-  HttpCode,
 } from '@nestjs/common';
 import { WondersService } from '../services/wonders.service';
 import { CreateWonderDto } from '../models/dto/create-wonder.dto';
 import { UpdateWonderDto } from '../models/dto/update-wonder.dto';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import {
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
 import { wonderCoverPhotoUploadInterceptor } from 'src/utils/file-upload';
 import { JoiValidationPipe } from '../../../validation.pipe';
-import { createWonderSchema, updateWonderSchema } from '../validation-schemas/schemas';
+import {
+  createWonderSchema,
+  updateWonderSchema,
+} from '../validation-schemas/schemas';
 import {
   UserAuthCreate,
   UserAuthFind,
@@ -86,7 +79,7 @@ export class WondersController {
       const result = await this.wondersService.remove(+id, req.user.userId);
       if (result) return { message: 'Wonder deleted', status: 'success' };
     } catch (e) {
-      return { message: "Can't delete Wonder", status: 'success' };
+      return { message: "Can't delete Wonder", status: 'error' };
     }
   }
 }

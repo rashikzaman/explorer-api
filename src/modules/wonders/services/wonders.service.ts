@@ -22,12 +22,15 @@ export class WondersService {
 
   async create(createWonderDto: CreateWonderDto): Promise<Wonder | undefined> {
     const user = await this.userRepository.findOne(createWonderDto.userId);
+    const visibility = await this.visibilityService.getVisibility(
+      createWonderDto.visibilityId,
+    );
 
     const wonder = await this.wonderRepository.save({
       title: createWonderDto.title,
       description: createWonderDto.description,
       coverPhotoUrl: createWonderDto.coverPhoto,
-      visibilityId: createWonderDto.visibilityId,
+      visibility: visibility,
       user: user,
     });
     return wonder;
@@ -43,10 +46,14 @@ export class WondersService {
     return wonders;
   }
 
-  async findOne(id: number, userId: string): Promise<Wonder | undefined> {
+  async findOne(
+    id: number,
+    userId: string,
+    withRelation = true,
+  ): Promise<Wonder | undefined> {
     const user = await this.getUser(userId);
     const wonder = await this.wonderRepository.findOne(id, {
-      relations: ['user', 'visibility'],
+      relations: withRelation ? ['user', 'visibility'] : [],
       where: { ...(user && { user: user }) },
     });
     if (!wonder) throw new NotFoundException();

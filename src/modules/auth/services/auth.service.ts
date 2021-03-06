@@ -14,6 +14,10 @@ import { authEventsType } from '../events/auth-events';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmailTempVerification } from '../models/entity/email.temp-verification.entity';
+import { PasswordResetToken } from '../models/entity/password-reset-token.entity';
+import * as crypto from 'crypto';
+import { hashInput } from '../../../utils/hash';
+
 
 @Injectable()
 export class AuthService {
@@ -23,6 +27,8 @@ export class AuthService {
     private eventEmitter: EventEmitter2,
     @InjectRepository(EmailTempVerification)
     private emailTempVerificationRepository: Repository<EmailTempVerification>,
+    @InjectRepository(PasswordResetToken)
+    private passwordResetTokenRepository: Repository<PasswordResetToken>,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -98,5 +104,29 @@ export class AuthService {
   createAccessToken(payload): string {
     const accessToken = this.jwtService.sign(payload);
     return accessToken;
+  }
+
+  async createPasswordResetToken(email: string) {
+    const user = await this.userAuthService.findOneByEmail(email);
+    if (!user) throw new NotFoundException();
+
+    await this.passwordResetTokenRepository.delete({ email: email });
+
+    const randomToken = crypto.randomBytes(32).toString('hex');
+    const hashedRadndomToken = await hashInput(randomToken);
+
+    try {
+      const token = await this.passwordResetTokenRepository.save({
+        email: email,
+        token: hashedRadndomToken,
+      });
+      this.eventEmitter.emit(authEventsType.resetPasswordTokenGenerated, {
+        email: email,
+        token: randomToken,
+      });
+      return token;
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 }

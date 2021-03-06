@@ -14,6 +14,7 @@ import { MailModule } from '../mail/mail.module';
 import { MailService } from '../mail/mail.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailTempVerification } from './models/entity/email.temp-verification.entity';
+import { PasswordResetToken } from './models/entity/password-reset-token.entity';
 
 @Module({
   controllers: [AuthController],
@@ -29,7 +30,7 @@ import { EmailTempVerification } from './models/entity/email.temp-verification.e
       },
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([EmailTempVerification]),
+    TypeOrmModule.forFeature([EmailTempVerification, PasswordResetToken]),
   ],
   exports: [AuthService, JwtModule],
 })

@@ -4,6 +4,7 @@ import { MailService } from '../../mail/mail.service';
 
 export const authEventsType = {
   userRegistered: 'user.registered',
+  resetPasswordTokenGenerated: 'reset.password.token.generated',
 };
 
 @Injectable()
@@ -17,4 +18,7 @@ export class AuthEvents {
     //   payload.verificationCode,
     // );
   }
+
+  @OnEvent(authEventsType.resetPasswordTokenGenerated)
+  handleResetPasswordTokenGeneration() {}
 }

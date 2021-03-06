@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
+  InternalServerErrorException,
   NotFoundException,
   Query,
   UnauthorizedException,
@@ -29,6 +30,7 @@ import {
 } from '@nestjs/swagger';
 import { User } from '../../users/models/user.entity';
 import { plainToClass } from 'class-transformer';
+import { PasswordResetTokenRequestDto } from '../models/dto/password-reset-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -111,5 +113,27 @@ export class AuthController {
     );
     if (result) return { success: true, message: 'User successfully verified' };
     else throw new UnauthorizedException();
+  }
+
+  @HttpCode(201)
+  @ApiOkResponse()
+  @ApiNotFoundResponse()
+  @ApiBadRequestResponse()
+  @Post('request-password-reset')
+  async requestResetPassword(
+    @Body() passwordResetRequestTokenDto: PasswordResetTokenRequestDto,
+  ) {
+    if (!passwordResetRequestTokenDto.email)
+      throw new BadRequestException('Email required');
+
+    const result = await this.authService.createPasswordResetToken(
+      passwordResetRequestTokenDto.email,
+    );
+    if (result)
+      return {
+        success: true,
+        message: 'Password reset link has been sent to your email',
+      };
+    else throw new InternalServerErrorException();
   }
 }

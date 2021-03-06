@@ -14,7 +14,7 @@ import {
 import { WondersService } from '../services/wonders.service';
 import { CreateWonderDto } from '../models/dto/create-wonder.dto';
 import { UpdateWonderDto } from '../models/dto/update-wonder.dto';
-import { wonderCoverPhotoUploadInterceptor } from 'src/utils/file-upload';
+import { wonderCoverPhotoUploadInterceptor } from '../../../utils/file-upload';
 import { JoiValidationPipe } from '../../../validation.pipe';
 import {
   createWonderSchema,
@@ -26,7 +26,7 @@ import {
   UserAuthFindAll,
   UserAuthDelete,
   UserAuthUpdate,
-} from 'src/modules/core/decorators/auth.decorator';
+} from '../../core/decorators/auth.decorator';
 
 @Controller('wonders')
 export class WondersController {

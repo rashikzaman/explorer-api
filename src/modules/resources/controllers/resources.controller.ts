@@ -29,7 +29,7 @@ import {
   UserAuthFind,
   UserAuthUpdate,
   UserAuthFindAll,
-} from 'src/modules/core/decorators/auth.decorator';
+} from '../../core/decorators/auth.decorator';
 
 @Controller('resources')
 export class ResourcesController {

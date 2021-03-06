@@ -16,7 +16,7 @@ describe('App Api', () => {
           host: 'localhost',
           port: 3306,
           username: 'root',
-          password: '',
+          password: '123456',
           database: 'wondered-db', //need to change this database
           entities: ['src/**/*.entity{.ts,.js}'],
           synchronize: false,
@@ -35,6 +35,7 @@ describe('App Api', () => {
 
   let jwtToken: any;
   let resourceId: any;
+  let wonderId: any;
 
   /** Authentication begins */
 
@@ -134,6 +135,55 @@ describe('App Api', () => {
   });
 
   /** Resources End */
+
+  /** Wonder begins */
+
+  it(`Wonder: if posting wonder without proper authorization, it should return 401`, () => {
+    return request(app.getHttpServer()).post('/wonders').expect(401);
+  });
+
+  it(`Wonder: if posting wonder without required request body, it should return 400`, () => {
+    return request(app.getHttpServer())
+      .post('/wonders')
+      .set('Authorization', `Bearer ${jwtToken}`)
+      .expect(400);
+  });
+
+  it(`Wonder: if requesting with required request body, it should return 201`, async () => {
+    const result = await request(app.getHttpServer())
+      .post('/wonders')
+      .send({
+        title: 'test wonder',
+        visibilityId: '3',
+        description: 'This is a test wonder',
+      })
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(201);
+    wonderId = result.body.id;
+  });
+
+  it(`Wonder: if requesting all wonders, it should return 200`, async () => {
+    const result = await request(app.getHttpServer())
+      .get('/wonders')
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(200);
+  });
+
+  it(`Wonder: if requesting one wonder with parameter, it should return 200`, async () => {
+    const result = await request(app.getHttpServer())
+      .get(`/wonders/${wonderId}`)
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(200);
+  });
+
+  it(`Wonder: if deleting one wonder with parameter, it should return 200`, async () => {
+    const result = await request(app.getHttpServer())
+      .delete(`/wonders/${wonderId}`)
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(200);
+  });
+
+  /** Wonder ends */
 
   afterAll(async () => {
     await app.close();

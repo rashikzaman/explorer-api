@@ -9,7 +9,7 @@ import { CreateWonderDto } from '../models/dto/create-wonder.dto';
 import { UpdateWonderDto } from '../models/dto/update-wonder.dto';
 import { Wonder } from '../models/entities/wonder.entity';
 import { User } from '../../users/models/user.entity';
-import { VisibilityService } from 'src/modules/visibility/services/visibility.service';
+import { VisibilityService } from '../../visibility/services/visibility.service';
 
 @Injectable()
 export class WondersService {

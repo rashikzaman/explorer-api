@@ -31,6 +31,7 @@ export class Wonder1614016987238 implements MigrationInterface {
             name: 'coverPhotoUrl',
             type: 'varchar',
             length: '255',
+            isNullable: true,
           },
           {
             name: 'visibilityId',

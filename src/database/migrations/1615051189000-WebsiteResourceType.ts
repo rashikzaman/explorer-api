@@ -10,6 +10,7 @@ export class WebsiteResourceType1615051189000 implements MigrationInterface {
             name: 'id',
             type: 'int',
             isPrimary: true,
+            isGenerated: true,
             generationStrategy: 'increment',
           },
           {

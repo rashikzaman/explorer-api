@@ -14,7 +14,9 @@ export class WebsiteResourceTypeService {
   ) {}
 
   async findAll(): Promise<WebsiteResourceType[] | undefined> {
-    const result = await this.resourceTypeRepository.find({});
+    const result = await this.resourceTypeRepository.find({
+      relations: ['resourceType'],
+    });
     return result;
   }
 }

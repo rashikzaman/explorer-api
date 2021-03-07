@@ -31,6 +31,14 @@ export class UsersAuthService {
     return result;
   }
 
+  async resetPassword(email: string, password): Promise<User | undefined> {
+    const hashedPassword = await this.hashPassword(password);
+    const user = await this.usersRepository.findOne({ email: email });
+    user.password = hashedPassword;
+    const savedUser = await this.usersRepository.save(user);
+    return savedUser;
+  }
+
   async hashPassword(password): Promise<string> {
     return bcrypt.hash(password, 6);
   }

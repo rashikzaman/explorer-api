@@ -18,7 +18,6 @@ import { PasswordResetToken } from '../models/entity/password-reset-token.entity
 import * as crypto from 'crypto';
 import { hashInput } from '../../../utils/hash';
 
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -127,6 +126,30 @@ export class AuthService {
       return token;
     } catch (e) {
       console.log(e.message);
+    }
+  }
+
+  async acceptPasswordResetToken(
+    email: string,
+    token: string,
+    password: string,
+  ) {
+    const user = await this.userAuthService.findOneByEmail(email);
+    if (!user) throw new NotFoundException('User not found');
+    const passwordToken = await this.passwordResetTokenRepository.findOne({
+      email: email,
+    });
+
+    if (!passwordToken)
+      throw new NotFoundException('No password reset token found');
+
+    if (user) {
+      const match = await bcrypt.compare(token, passwordToken.token);
+      if (match) {
+        const user = await this.userAuthService.resetPassword(email, password);
+        await this.passwordResetTokenRepository.delete({ email: email });
+        return user;
+      } else throw new UnauthorizedException();
     }
   }
 }

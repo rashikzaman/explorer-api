@@ -30,7 +30,8 @@ import {
 } from '@nestjs/swagger';
 import { User } from '../../users/models/user.entity';
 import { plainToClass } from 'class-transformer';
-import { PasswordResetTokenRequestDto } from '../models/dto/password-reset-token.dto';
+import { PasswordResetTokenRequestDto } from '../models/dto/password-reset-token-request.dto';
+import { PasswordResetTokenDto } from '../models/dto/password-reset-token.dto ';
 
 @Controller('auth')
 export class AuthController {
@@ -135,5 +136,30 @@ export class AuthController {
         message: 'Password reset link has been sent to your email',
       };
     else throw new InternalServerErrorException();
+  }
+
+  @HttpCode(200)
+  @ApiOkResponse()
+  @ApiNotFoundResponse()
+  @ApiBadRequestResponse()
+  @Post('password-reset')
+  async resetPassword(@Body() passwordResetTokenDto: PasswordResetTokenDto) {
+    if (
+      !passwordResetTokenDto.email ||
+      !passwordResetTokenDto.token ||
+      !passwordResetTokenDto.password
+    )
+      throw new BadRequestException('Email, token and password required');
+
+    const result = await this.authService.acceptPasswordResetToken(
+      passwordResetTokenDto.email,
+      passwordResetTokenDto.token,
+      passwordResetTokenDto.password,
+    );
+    if (result)
+      return {
+        success: true,
+        message: 'Password successfully reset!',
+      };
   }
 }

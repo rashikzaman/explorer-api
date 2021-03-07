@@ -4,7 +4,10 @@ import {
   PrimaryGeneratedColumn,
   Unique,
   BeforeInsert,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { ResourceType } from './resource-type.entity';
 
 @Entity()
 export class WebsiteResourceType {
@@ -14,8 +17,9 @@ export class WebsiteResourceType {
   @Column()
   domain: string;
 
-  @Column()
-  resourceType: string;
+  @ManyToOne(() => ResourceType)
+  @JoinColumn()
+  resourceType: ResourceType;
 
   @Column({
     type: 'timestamp',

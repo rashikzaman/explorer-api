@@ -51,6 +51,7 @@ export class ResourcesService {
       imageLink: createResourceDto.image,
       audioClipLink: createResourceDto.audioClip,
       url: createResourceDto.url,
+      urlImage: createResourceDto.urlImage,
     });
 
     return resource;
@@ -119,6 +120,7 @@ export class ResourcesService {
     resource.description = updateResourceDto.description;
     resource.imageLink = updateResourceDto.image;
     resource.audioClipLink = updateResourceDto.audioClip;
+    resource.urlImage = updateResourceDto.urlImage;
     const result = await this.resourceRepository.save(resource);
 
     return result;

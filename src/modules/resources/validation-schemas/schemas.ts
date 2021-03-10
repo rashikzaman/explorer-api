@@ -7,6 +7,7 @@ export const createResourceSchema = Joi.object({
   resourceTypeId: Joi.number().required(),
   visibilityTypeId: Joi.number().required(),
   image: Joi.any(),
+  urlImage: Joi.string().max(200),
 });
 
 export const updateResourceSchema = Joi.object({
@@ -16,4 +17,5 @@ export const updateResourceSchema = Joi.object({
   resourceTypeId: Joi.number().required(),
   visibilityTypeId: Joi.number().required(),
   image: Joi.any(),
+  urlImage: Joi.string().max(200)
 });

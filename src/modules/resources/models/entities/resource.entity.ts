@@ -4,9 +4,6 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  Unique,
-  BeforeInsert,
-  OneToOne,
   JoinColumn,
   Index,
   ManyToOne,
@@ -14,6 +11,7 @@ import {
 
 import { User } from '../../../users/models/user.entity';
 import { ResourceType } from './resource-type.entity';
+import { type } from 'os';
 
 @Entity()
 export class Resource {
@@ -48,11 +46,8 @@ export class Resource {
   @JoinColumn()
   resourceType: ResourceType;
 
-  // @JoinColumn({ name: 'id' })
-  // visibilityId: Visibility;
-
-  // @JoinColumn({ name: 'id' })
-  // resourceTypeId: ResourceType;
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  urlImage: string;
 
   @Column({
     type: 'timestamp',

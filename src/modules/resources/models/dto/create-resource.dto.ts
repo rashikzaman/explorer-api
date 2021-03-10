@@ -44,4 +44,11 @@ export class CreateResourceDto {
     required: false,
   })
   audioClip: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Url Image link',
+    required: false,
+  })
+  urlImage: string;
 }

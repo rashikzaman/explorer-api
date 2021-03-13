@@ -3,7 +3,7 @@ import { WondersService } from './services/wonders.service';
 import { WondersController } from './controllers/wonders.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Wonder } from './models/entities/wonder.entity';
-import { User } from '../users/models/user.entity';
+import { User } from '../users/models/entity/user.entity';
 import { VisibilityService } from '../visibility/services/visibility.service';
 import { Visibility } from '../visibility/models/entity/visibility.entity';
 

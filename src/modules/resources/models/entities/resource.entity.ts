@@ -9,7 +9,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 
-import { User } from '../../../users/models/user.entity';
+import { User } from '../../../users/models/entity/user.entity';
 import { ResourceType } from './resource-type.entity';
 import { type } from 'os';
 

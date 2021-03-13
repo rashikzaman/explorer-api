@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../../users/models/user.entity';
+import { User } from '../../users/models/entity/user.entity';
 import { Repository } from 'typeorm';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
 import { UpdateResourceDto } from '../models/dto/update-resource.dto';

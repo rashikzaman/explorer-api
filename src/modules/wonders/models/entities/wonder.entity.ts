@@ -12,7 +12,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 
-import { User } from '../../../users/models/user.entity';
+import { User } from '../../../users/models/entity/user.entity';
 import { Visibility } from '../../../visibility/models/entity/visibility.entity';
 
 @Entity()

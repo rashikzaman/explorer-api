@@ -1,16 +1,26 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
-import { ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+/* eslint-disable prettier/prettier */
+import { Controller, Get, Request, Put, Body } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
+import {
+  UserAuthFind,
+  UserAuthUpdate,
+} from '../../core/decorators/auth.decorator';
+import { ProfileUpdateDto } from '../models/dto/profiile-update.dto';
 
-@Controller()
+
+@Controller('profile')
 export class ProfileController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @Get('profile')
+  @UserAuthFind()
+  @Get()
   getProfile(@Request() req) {
     return this.usersService.findOne(req.user.userId);
+  }
+
+  @UserAuthUpdate()
+  @Put()
+  updateProfile(@Body() profileUpdateDto: ProfileUpdateDto, @Request() req){
+    return this.usersService.update(req.user.userId, profileUpdateDto)
   }
 }

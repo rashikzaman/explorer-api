@@ -28,7 +28,7 @@ import {
   ApiQuery,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { User } from '../../users/models/user.entity';
+import { User } from '../../users/models/entity/user.entity';
 import { plainToClass } from 'class-transformer';
 import { PasswordResetTokenRequestDto } from '../models/dto/password-reset-token-request.dto';
 import { PasswordResetTokenDto } from '../models/dto/password-reset-token.dto ';

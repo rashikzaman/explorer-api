@@ -3,7 +3,7 @@ import { ResourcesService } from './services/resources.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WebsiteResourceType } from './models/entities/website-resource-type.entity';
 import { Resource } from './models/entities/resource.entity';
-import { User } from '../users/models/user.entity';
+import { User } from '../users/models/entity/user.entity';
 import { UsersModule } from '../users/users.module';
 import { Visibility } from '../visibility/models/entity/visibility.entity';
 import { ResourceType } from './models/entities/resource-type.entity';

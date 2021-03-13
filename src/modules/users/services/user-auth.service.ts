@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { use } from 'passport';
 import { RegisterDto } from 'src/modules/auth/models/dto/register.dto';
 import { Repository } from 'typeorm';
-import { User } from '../models/user.entity';
+import { User } from '../models/entity/user.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -37,6 +37,31 @@ export class UsersAuthService {
     user.password = hashedPassword;
     const savedUser = await this.usersRepository.save(user);
     return savedUser;
+  }
+
+  async changePassord(
+    email: string,
+    oldPassWord: string,
+    newPassword: string,
+    newPasswordConfirmation: string,
+  ) {
+    if (newPassword !== newPasswordConfirmation) {
+      throw new BadRequestException("Password doesn't match!");
+    }
+    const user = await this.findOneByEmail(email);
+    if (user) {
+      const match = await bcrypt.compare(oldPassWord, user.password);
+      if (match) {
+        const hashedPassword = await this.hashPassword(newPassword);
+        user.password = hashedPassword;
+        const savedUser = await this.usersRepository.save(user);
+        return savedUser;
+      } else {
+        throw new BadRequestException("Old password doesn't match");
+      }
+    } else {
+      throw new NotFoundException('User not found!');
+    }
   }
 
   async hashPassword(password): Promise<string> {

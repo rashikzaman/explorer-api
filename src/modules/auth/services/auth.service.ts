@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -8,7 +9,7 @@ import { UsersAuthService } from '../../users/services/user-auth.service';
 import { UsersService } from '../../users/services/users.service';
 import { RegisterDto } from '../models/dto/register.dto';
 import * as bcrypt from 'bcrypt';
-import { User } from 'src/modules/users/models/user.entity';
+import { User } from '../../users/models/entity/user.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { authEventsType } from '../events/auth-events';
 import { InjectRepository } from '@nestjs/typeorm';

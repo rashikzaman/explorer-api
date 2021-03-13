@@ -5,7 +5,10 @@ import {
   PrimaryGeneratedColumn,
   Unique,
   BeforeInsert,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
+import { UserAttribute } from './user-attribute.entity';
 
 @Entity()
 export class User {
@@ -24,6 +27,9 @@ export class User {
   @Column({ select: false })
   @Exclude()
   password: string;
+
+  @OneToOne(() => UserAttribute, (userAttribute) => userAttribute.user)
+  userAttribute: UserAttribute;
 
   @Column({
     type: 'timestamp',

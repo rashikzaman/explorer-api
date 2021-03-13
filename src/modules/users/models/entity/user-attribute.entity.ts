@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { Visibility } from 'src/modules/visibility/models/entity/visibility.entity';
+import { Visibility } from '../../../visibility/models/entity/visibility.entity';
 import {
   Entity,
   Column,

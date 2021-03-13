@@ -16,6 +16,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { CoreModule } from './modules/core/core.module';
+import { MetadataModule } from './modules/metadata/metadata.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { CoreModule } from './modules/core/core.module';
     VisibilityModule,
     WonderResourceModule,
     CoreModule,
+    MetadataModule,
   ],
   controllers: [AppController],
   providers: [AppService],

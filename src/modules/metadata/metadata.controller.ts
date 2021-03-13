@@ -16,11 +16,13 @@ import { UpdateMetadatumDto } from './dto/update-metadatum.dto';
 import { getMetadata } from 'page-metadata-parser';
 import * as domino from 'domino';
 import * as fetch from 'node-fetch';
+import { ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 
 @Controller('metadata')
 export class MetadataController {
   constructor(private readonly metadataService: MetadataService) {}
-
+  @ApiOkResponse()
+  @ApiQuery({ name: 'url' })
   @Get('parser')
   async find(@Query() query: any) {
     const url = query.url;

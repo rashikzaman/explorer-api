@@ -12,6 +12,8 @@ import { UpdateResourceDto } from '../models/dto/update-resource.dto';
 import { Resource } from '../models/entities/resource.entity';
 import { Visibility } from '../../visibility/models/entity/visibility.entity';
 import { ResourceType } from '../models/entities/resource-type.entity';
+import { ResourceKeyword } from '../models/entities/resource-keyword.entity';
+import { ResourceKeywordsService } from './resource-keywords.service';
 
 @Injectable()
 export class ResourcesService {
@@ -23,7 +25,10 @@ export class ResourcesService {
     private visibilityRepository: Repository<Visibility>,
     @InjectRepository(ResourceType)
     private resourceTypeRepository: Repository<ResourceType>,
-  ) {}
+    @InjectRepository(ResourceKeyword)
+    private resourceKeywordRepository: Repository<ResourceKeyword>,
+    private resourceKeywordsService: ResourceKeywordsService,
+  ) { }
 
   async create(
     createResourceDto: CreateResourceDto,
@@ -54,6 +59,10 @@ export class ResourcesService {
       urlImage: createResourceDto.urlImage,
     });
 
+    const resourceKeywords = await this.resourceKeywordsService.create(
+      createResourceDto.keywords,
+      resource,
+    );
     return resource;
   }
 
@@ -64,7 +73,7 @@ export class ResourcesService {
     const user = await this.getUser(userId);
 
     const result = await this.resourceRepository.find({
-      relations: ['resourceType', 'visibility', 'user'],
+      relations: ['resourceType', 'visibility', 'user', 'resourceKeywords'],
       where: { ...(user && { user: user }) },
     });
     return result;
@@ -78,7 +87,7 @@ export class ResourcesService {
   async findOne(id: number, userId: string = null): Promise<Resource | any> {
     const user = await this.getUser(userId);
     const resource = await this.resourceRepository.findOne(id, {
-      relations: ['resourceType', 'visibility', 'user'],
+      relations: ['resourceType', 'visibility', 'user', 'resourceKeywords'],
       where: { ...(user && { user: user }) },
     });
     if (!resource) throw new NotFoundException();
@@ -122,6 +131,11 @@ export class ResourcesService {
     resource.audioClipLink = updateResourceDto.audioClip;
     resource.urlImage = updateResourceDto.urlImage;
     const result = await this.resourceRepository.save(resource);
+
+    const resourceKeywords = this.resourceKeywordsService.update(
+      updateResourceDto.keywords,
+      result,
+    );
 
     return result;
   }

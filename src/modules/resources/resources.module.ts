@@ -12,6 +12,8 @@ import { ResourceTypesService } from './services/resource-types.service';
 import { ResourcesController } from './controllers/resources.controller';
 import { WebsiteResourceTypeController } from './controllers/website-resource-type.controller';
 import { WebsiteResourceTypeService } from './services/website-resource-type.service';
+import { ResourceKeyword } from './models/entities/resource-keyword.entity';
+import { ResourceKeywordsService } from './services/resource-keywords.service';
 
 @Module({
   controllers: [
@@ -23,6 +25,7 @@ import { WebsiteResourceTypeService } from './services/website-resource-type.ser
     ResourcesService,
     ResourceTypesService,
     WebsiteResourceTypeService,
+    ResourceKeywordsService,
   ],
   imports: [
     TypeOrmModule.forFeature([
@@ -31,6 +34,7 @@ import { WebsiteResourceTypeService } from './services/website-resource-type.ser
       User,
       Visibility,
       ResourceType,
+      ResourceKeyword,
     ]),
   ],
 })

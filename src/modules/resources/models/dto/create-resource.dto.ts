@@ -51,4 +51,11 @@ export class CreateResourceDto {
     required: false,
   })
   urlImage: string;
+
+  @ApiProperty({
+    type: Array,
+    description: 'Resource Keywords',
+    required: false,
+  })
+  keywords: [string];
 }

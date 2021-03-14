@@ -7,11 +7,13 @@ import {
   JoinColumn,
   Index,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 
 import { User } from '../../../users/models/entity/user.entity';
 import { ResourceType } from './resource-type.entity';
 import { type } from 'os';
+import { ResourceKeyword } from './resource-keyword.entity';
 
 @Entity()
 export class Resource {
@@ -45,6 +47,12 @@ export class Resource {
   @ManyToOne(() => ResourceType)
   @JoinColumn()
   resourceType: ResourceType;
+
+  @OneToMany(
+    () => ResourceKeyword,
+    (resourceKeyword) => resourceKeyword.resource,
+  )
+  resourceKeywords: ResourceKeyword;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
   urlImage: string;

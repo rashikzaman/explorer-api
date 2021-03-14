@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMetadatumDto } from './dto/create-metadatum.dto';
 import { UpdateMetadatumDto } from './dto/update-metadatum.dto';
+import { getMetadata } from 'page-metadata-parser';
+import * as domino from 'domino';
+import * as fetch from 'node-fetch';
 
 @Injectable()
 export class MetadataService {
@@ -22,5 +25,13 @@ export class MetadataService {
 
   remove(id: number) {
     return `This action removes a #${id} metadatum`;
+  }
+
+  async parse(url: string): Promise<any> {
+    const response = await fetch(url);
+    const html = await response.text();
+    const doc = domino.createWindow(html).document;
+    const metadata = getMetadata(doc, url);
+    return metadata;
   }
 }

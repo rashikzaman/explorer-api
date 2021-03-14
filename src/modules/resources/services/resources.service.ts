@@ -28,7 +28,7 @@ export class ResourcesService {
     @InjectRepository(ResourceKeyword)
     private resourceKeywordRepository: Repository<ResourceKeyword>,
     private resourceKeywordsService: ResourceKeywordsService,
-  ) { }
+  ) {}
 
   async create(
     createResourceDto: CreateResourceDto,

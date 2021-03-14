@@ -107,6 +107,7 @@ describe('App Api', () => {
         title: 'test resource',
         resourceTypeId: '1',
         visibilityTypeId: '3',
+        keywords: ['test', 'resource'],
       })
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(result.status).toBe(201);

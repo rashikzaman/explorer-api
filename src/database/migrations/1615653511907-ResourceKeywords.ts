@@ -41,6 +41,7 @@ export class ResourceKeywords1615653511907 implements MigrationInterface {
             columnNames: ['resourceId'],
             referencedColumnNames: ['id'],
             referencedTableName: 'resource',
+            onDelete: 'CASCADE',
           },
         ],
       }),

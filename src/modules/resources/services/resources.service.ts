@@ -14,6 +14,7 @@ import { Visibility } from '../../visibility/models/entity/visibility.entity';
 import { ResourceType } from '../models/entities/resource-type.entity';
 import { ResourceKeyword } from '../models/entities/resource-keyword.entity';
 import { ResourceKeywordsService } from './resource-keywords.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ResourcesService {
@@ -28,6 +29,7 @@ export class ResourcesService {
     @InjectRepository(ResourceKeyword)
     private resourceKeywordRepository: Repository<ResourceKeyword>,
     private resourceKeywordsService: ResourceKeywordsService,
+    private configService: ConfigService,
   ) {}
 
   async create(
@@ -69,14 +71,37 @@ export class ResourcesService {
   /**
    * @param string userId
    */
-  async findAll(userId: string = null): Promise<Resource[] | undefined> {
+  async findAll(
+    userId: string = null,
+    query: {
+      pageSize: number;
+      pageNumber: number;
+    },
+  ): Promise<Collection | undefined> {
     const user = await this.getUser(userId);
+    const pageSize = query.pageSize
+      ? query.pageSize
+      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
+    const pageNumber = query.pageNumber ?? 1;
 
+    const skippedItems = (pageNumber - 1) * query.pageSize;
+
+    const totalCount = await this.resourceRepository.count({
+      where: { ...(user && { user: user }) },
+    });
     const result = await this.resourceRepository.find({
       relations: ['resourceType', 'visibility', 'user', 'resourceKeywords'],
       where: { ...(user && { user: user }) },
+      take: pageSize,
+      skip: skippedItems,
     });
-    return result;
+
+    return {
+      items: result,
+      pageNumber: pageNumber,
+      pageSize: pageSize,
+      totalCount: totalCount,
+    };
   }
 
   /**

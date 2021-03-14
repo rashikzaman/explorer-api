@@ -10,6 +10,7 @@ import {
   Request,
   UsePipes,
   UploadedFiles,
+  Query,
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
@@ -61,8 +62,11 @@ export class ResourcesController {
 
   @Get()
   @UserAuthFindAll()
-  findAll(@Request() req) {
-    return this.resourcesService.findAll(req.user.userId);
+  findAll(
+    @Request() req,
+    @Query() query: { pageSize: number; pageNumber: number },
+  ) {
+    return this.resourcesService.findAll(req.user.userId, query);
   }
 
   @Get(':id')

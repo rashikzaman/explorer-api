@@ -14,6 +14,7 @@ import { Visibility } from '../../visibility/models/entity/visibility.entity';
 import { ResourceType } from '../models/entities/resource-type.entity';
 import { ResourceKeyword } from '../models/entities/resource-keyword.entity';
 import { ResourceKeywordsService } from './resource-keywords.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ResourcesService {
@@ -28,6 +29,7 @@ export class ResourcesService {
     @InjectRepository(ResourceKeyword)
     private resourceKeywordRepository: Repository<ResourceKeyword>,
     private resourceKeywordsService: ResourceKeywordsService,
+    private configService: ConfigService,
   ) {}
 
   async create(
@@ -72,10 +74,21 @@ export class ResourcesService {
   async findAll(userId: string = null): Promise<Resource[] | undefined> {
     const user = await this.getUser(userId);
 
-    const result = await this.resourceRepository.find({
-      relations: ['resourceType', 'visibility', 'user', 'resourceKeywords'],
+    const resources = await this.resourceRepository.find({
+      relations: ['resourceType', 'visibility', 'user'],
       where: { ...(user && { user: user }) },
     });
+
+    const result = resources.map((item) => {
+      item.imageLink = item.imageLink
+        ? this.configService.get('HOST_API') + item.imageLink
+        : null;
+      item.audioClipLink = item.audioClipLink
+        ? this.configService.get('HOST_API') + item.audioClipLink
+        : null;
+      return item;
+    });
+
     return result;
   }
 
@@ -90,6 +103,12 @@ export class ResourcesService {
       relations: ['resourceType', 'visibility', 'user', 'resourceKeywords'],
       where: { ...(user && { user: user }) },
     });
+    resource.imageLink = resource.imageLink
+      ? this.configService.get('HOST_API') + resource.imageLink
+      : null;
+    resource.audioClipLink = resource.audioClipLink
+      ? this.configService.get('HOST_API') + resource.audioClipLink
+      : null;
     if (!resource) throw new NotFoundException();
     return resource;
   }

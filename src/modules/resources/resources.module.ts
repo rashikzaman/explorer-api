@@ -12,6 +12,7 @@ import { ResourceTypesService } from './services/resource-types.service';
 import { ResourcesController } from './controllers/resources.controller';
 import { WebsiteResourceTypeController } from './controllers/website-resource-type.controller';
 import { WebsiteResourceTypeService } from './services/website-resource-type.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [
@@ -23,6 +24,7 @@ import { WebsiteResourceTypeService } from './services/website-resource-type.ser
     ResourcesService,
     ResourceTypesService,
     WebsiteResourceTypeService,
+    ConfigService,
   ],
   imports: [
     TypeOrmModule.forFeature([

@@ -14,6 +14,7 @@ import { WebsiteResourceTypeController } from './controllers/website-resource-ty
 import { WebsiteResourceTypeService } from './services/website-resource-type.service';
 import { ResourceKeyword } from './models/entities/resource-keyword.entity';
 import { ResourceKeywordsService } from './services/resource-keywords.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [
@@ -26,6 +27,7 @@ import { ResourceKeywordsService } from './services/resource-keywords.service';
     ResourceTypesService,
     WebsiteResourceTypeService,
     ResourceKeywordsService,
+    ConfigService,
   ],
   imports: [
     TypeOrmModule.forFeature([

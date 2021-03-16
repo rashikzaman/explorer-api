@@ -89,11 +89,21 @@ export class ResourcesService {
     const totalCount = await this.resourceRepository.count({
       where: { ...(user && { user: user }) },
     });
-    const result = await this.resourceRepository.find({
-      relations: ['resourceType', 'visibility', 'user', 'resourceKeywords'],
+    const resources = await this.resourceRepository.find({
+      relations: ['resourceType', 'visibility', 'user'],
       where: { ...(user && { user: user }) },
       take: pageSize,
       skip: skippedItems,
+    });
+
+    const result = resources.map((item) => {
+      item.imageLink = item.imageLink
+        ? this.configService.get('HOST_API') + item.imageLink
+        : null;
+      item.audioClipLink = item.audioClipLink
+        ? this.configService.get('HOST_API') + item.audioClipLink
+        : null;
+      return item;
     });
 
     return {
@@ -115,6 +125,12 @@ export class ResourcesService {
       relations: ['resourceType', 'visibility', 'user', 'resourceKeywords'],
       where: { ...(user && { user: user }) },
     });
+    resource.imageLink = resource.imageLink
+      ? this.configService.get('HOST_API') + resource.imageLink
+      : null;
+    resource.audioClipLink = resource.audioClipLink
+      ? this.configService.get('HOST_API') + resource.audioClipLink
+      : null;
     if (!resource) throw new NotFoundException();
     return resource;
   }

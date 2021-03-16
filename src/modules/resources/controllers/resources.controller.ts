@@ -15,9 +15,6 @@ import {
 import { ResourcesService } from '../services/resources.service';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
 import { UpdateResourceDto } from '../models/dto/update-resource.dto';
-import { getMetadata } from 'page-metadata-parser';
-import * as domino from 'domino';
-import * as fetch from 'node-fetch';
 import { resourceFileUploadInterceptor } from '../../../utils/file-upload';
 import { JoiValidationPipe } from '../../../validation.pipe';
 import {
@@ -49,9 +46,14 @@ export class ResourcesController {
     let audioClipPath = null;
     if (files) {
       imagePath = files.image ? files.image[0].path.replace(/\\/g, '/') : null;
+
+      if (imagePath) imagePath = imagePath.replace('public/', '');
+
       audioClipPath = files.audioClip
         ? files.audioClip[0].path.replace(/\\/g, '/')
         : null;
+
+      if (audioClipPath) audioClipPath = audioClipPath.replace('public/', '');
     }
     createResourceDto.image = imagePath;
     createResourceDto.audioClip = audioClipPath;
@@ -89,9 +91,12 @@ export class ResourcesController {
     let audioClipPath = null;
     if (files) {
       imagePath = files.image ? files.image[0].path.replace(/\\/g, '/') : null;
+      if (imagePath) imagePath = imagePath.replace('public/', '');
+
       audioClipPath = files.audioClip
         ? files.audioClip[0].path.replace(/\\/g, '/')
         : null;
+      if (audioClipPath) audioClipPath = audioClipPath.replace('public/', '');
     }
     updateResourceDto.image = imagePath;
     updateResourceDto.audioClip = audioClipPath;

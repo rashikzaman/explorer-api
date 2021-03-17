@@ -15,6 +15,7 @@ import { WebsiteResourceTypeService } from './services/website-resource-type.ser
 import { ResourceKeyword } from './models/entities/resource-keyword.entity';
 import { ResourceKeywordsService } from './services/resource-keywords.service';
 import { ConfigService } from '@nestjs/config';
+import { S3FileService } from '../aws/s3/services/s3-file.service';
 
 @Module({
   controllers: [
@@ -28,6 +29,7 @@ import { ConfigService } from '@nestjs/config';
     WebsiteResourceTypeService,
     ResourceKeywordsService,
     ConfigService,
+    S3FileService,
   ],
   imports: [
     TypeOrmModule.forFeature([

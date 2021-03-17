@@ -10,6 +10,7 @@ import {
   Request,
   UsePipes,
   UploadedFiles,
+  UploadedFile,
   Query,
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
@@ -28,10 +29,26 @@ import {
   UserAuthUpdate,
   UserAuthFindAll,
 } from '../../core/decorators/auth.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
+import { S3FileService } from '../../aws/s3/services/s3-file.service';
 
 @Controller('resources')
 export class ResourcesController {
-  constructor(private readonly resourcesService: ResourcesService) {}
+  constructor(
+    private readonly resourcesService: ResourcesService,
+    private s3FileService: S3FileService,
+  ) {}
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFileToS3(@UploadedFile() file: Express.Multer.File) {
+    const result = await this.s3FileService.uploadPublicFile(
+      file.buffer,
+      file.originalname,
+    );
+    return result;
+  }
 
   @Post()
   @UserAuthCreate()
@@ -42,21 +59,14 @@ export class ResourcesController {
     @UploadedFiles() files,
     @Request() req,
   ) {
-    let imagePath = null;
-    let audioClipPath = null;
-    if (files) {
-      imagePath = files.image ? files.image[0].path.replace(/\\/g, '/') : null;
+    let image = null;
+    let audioClip = null;
+    if (files && files.image) image = files.image ? files.image[0] : null;
+    if (files && files.audioClip)
+      audioClip = files.audioClip ? files.audioClip[0] : null;
 
-      if (imagePath) imagePath = imagePath.replace('public/', '');
-
-      audioClipPath = files.audioClip
-        ? files.audioClip[0].path.replace(/\\/g, '/')
-        : null;
-
-      if (audioClipPath) audioClipPath = audioClipPath.replace('public/', '');
-    }
-    createResourceDto.image = imagePath;
-    createResourceDto.audioClip = audioClipPath;
+    createResourceDto.image = image;
+    createResourceDto.audioClip = audioClip;
     createResourceDto.userId = req.user.userId;
     const result = this.resourcesService.create(createResourceDto);
     return result;
@@ -87,19 +97,8 @@ export class ResourcesController {
     @UploadedFiles() files,
     @Request() req: any,
   ) {
-    let imagePath = null;
-    let audioClipPath = null;
-    if (files) {
-      imagePath = files.image ? files.image[0].path.replace(/\\/g, '/') : null;
-      if (imagePath) imagePath = imagePath.replace('public/', '');
-
-      audioClipPath = files.audioClip
-        ? files.audioClip[0].path.replace(/\\/g, '/')
-        : null;
-      if (audioClipPath) audioClipPath = audioClipPath.replace('public/', '');
-    }
-    updateResourceDto.image = imagePath;
-    updateResourceDto.audioClip = audioClipPath;
+    updateResourceDto.image = files.image ? files.image[0] : null;
+    updateResourceDto.audioClip = files.audioClip ? files.audioClip[0] : null;
     updateResourceDto.userId = req.user.userId;
     return this.resourcesService.update(+id, updateResourceDto);
   }

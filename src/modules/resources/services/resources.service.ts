@@ -15,6 +15,7 @@ import { ResourceType } from '../models/entities/resource-type.entity';
 import { ResourceKeyword } from '../models/entities/resource-keyword.entity';
 import { ResourceKeywordsService } from './resource-keywords.service';
 import { ConfigService } from '@nestjs/config';
+import { S3FileService } from 'src/modules/aws/s3/services/s3-file.service';
 
 @Injectable()
 export class ResourcesService {
@@ -30,6 +31,7 @@ export class ResourcesService {
     private resourceKeywordRepository: Repository<ResourceKeyword>,
     private resourceKeywordsService: ResourceKeywordsService,
     private configService: ConfigService,
+    private s3FileService: S3FileService,
   ) {}
 
   async create(
@@ -49,19 +51,36 @@ export class ResourcesService {
     if (!visibility)
       throw new BadRequestException({ message: 'Visibility type not found' });
 
+    let s3Image = null;
+    let s3AudioClip = null;
+    if (createResourceDto.image) {
+      s3Image = await this.s3FileService.uploadPublicFile(
+        createResourceDto.image.buffer,
+        createResourceDto.image.originalname,
+        'resource/images',
+      );
+    }
+    if (createResourceDto.audioClip) {
+      s3AudioClip = await this.s3FileService.uploadPublicFile(
+        createResourceDto.audioClip.buffer,
+        createResourceDto.audioClip.originalname,
+        'resource/audioClips',
+      );
+    }
+
     const resource = await this.resourceRepository.save({
       title: createResourceDto.title,
       description: createResourceDto.description,
       user: user,
       visibility: visibility,
       resourceType: resourceType,
-      imageLink: createResourceDto.image,
-      audioClipLink: createResourceDto.audioClip,
+      imageLink: s3Image ? s3Image.key : null,
+      audioClipLink: s3AudioClip ? s3AudioClip.key : null,
       url: createResourceDto.url,
       urlImage: createResourceDto.urlImage,
     });
 
-    const resourceKeywords = await this.resourceKeywordsService.create(
+    await this.resourceKeywordsService.create(
       createResourceDto.keywords,
       resource,
     );
@@ -163,20 +182,40 @@ export class ResourcesService {
         message: 'Visibility type not found',
       });
 
+    let s3Image = null;
+    let s3AudioClip = null;
+    if (updateResourceDto.image) {
+      s3Image = await this.s3FileService.uploadPublicFile(
+        updateResourceDto.image.buffer,
+        updateResourceDto.image.originalname,
+        'resource/images',
+      );
+    }
+    if (updateResourceDto.audioClip) {
+      s3AudioClip = await this.s3FileService.uploadPublicFile(
+        updateResourceDto.audioClip.buffer,
+        updateResourceDto.audioClip.originalname,
+        'resource/audioClips',
+      );
+    }
+
+    let imageLink = null;
+    let audioClipLink = null;
+    if (updateResourceDto.imageLink) imageLink = updateResourceDto.imageLink;
+    if (updateResourceDto.audioClipLink)
+      audioClipLink = updateResourceDto.audioClipLink;
+
     resource.title = updateResourceDto.title;
     resource.url = updateResourceDto.url;
     resource.user = user;
     resource.visibility = visibility;
     resource.description = updateResourceDto.description;
-    resource.imageLink = updateResourceDto.image;
-    resource.audioClipLink = updateResourceDto.audioClip;
+    resource.imageLink = s3Image ? s3Image.key : imageLink;
+    resource.audioClipLink = s3AudioClip ? s3AudioClip.key : audioClipLink;
     resource.urlImage = updateResourceDto.urlImage;
     const result = await this.resourceRepository.save(resource);
 
-    const resourceKeywords = this.resourceKeywordsService.update(
-      updateResourceDto.keywords,
-      result,
-    );
+    this.resourceKeywordsService.update(updateResourceDto.keywords, result);
 
     return result;
   }

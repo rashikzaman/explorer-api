@@ -22,4 +22,6 @@ export const updateResourceSchema = Joi.object({
   urlImage: Joi.string().max(255),
   audioClip: Joi.any(),
   keywords: Joi.array().items(Joi.string()),
+  imageLink: Joi.string().optional().allow(''),
+  audioClipLink: Joi.string().optional().allow(''),
 });

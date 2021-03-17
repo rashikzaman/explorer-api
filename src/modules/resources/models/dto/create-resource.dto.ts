@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Express } from 'express';
+import { binary } from 'joi';
 
 export class CreateResourceDto {
   @ApiProperty({ type: Number, description: 'User id', required: false })
@@ -35,15 +37,17 @@ export class CreateResourceDto {
     type: String,
     description: 'Image file',
     required: false,
+    format: 'binary',
   })
-  image: string;
+  image: Express.Multer.File;
 
   @ApiProperty({
     type: String,
     description: 'Audio Clip',
     required: false,
+    format: 'binary',
   })
-  audioClip: string;
+  audioClip: Express.Multer.File;
 
   @ApiProperty({
     type: String,

@@ -108,8 +108,9 @@ export class ResourcesService {
 
     return {
       items: result,
-      pageNumber: pageNumber,
-      pageSize: pageSize,
+      pageNumber:
+        typeof pageNumber === 'string' ? parseInt(pageNumber) : pageNumber,
+      pageSize: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
       totalCount: totalCount,
     };
   }

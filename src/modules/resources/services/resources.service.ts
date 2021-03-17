@@ -15,7 +15,7 @@ import { ResourceType } from '../models/entities/resource-type.entity';
 import { ResourceKeyword } from '../models/entities/resource-keyword.entity';
 import { ResourceKeywordsService } from './resource-keywords.service';
 import { ConfigService } from '@nestjs/config';
-import { S3FileService } from 'src/modules/aws/s3/services/s3-file.service';
+import { S3FileService } from '../../aws/s3/services/s3-file.service';
 
 @Injectable()
 export class ResourcesService {

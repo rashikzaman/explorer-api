@@ -59,8 +59,14 @@ export class ResourcesController {
     @UploadedFiles() files,
     @Request() req,
   ) {
-    createResourceDto.image = files.image ? files.image[0] : null;
-    createResourceDto.audioClip = files.audioClip ? files.audioClip[0] : null;
+    let image = null;
+    let audioClip = null;
+    if (files && files.image) image = files.image ? files.image[0] : null;
+    if (files && files.audioClip)
+      audioClip = files.audioClip ? files.audioClip[0] : null;
+
+    createResourceDto.image = image;
+    createResourceDto.audioClip = audioClip;
     createResourceDto.userId = req.user.userId;
     const result = this.resourcesService.create(createResourceDto);
     return result;

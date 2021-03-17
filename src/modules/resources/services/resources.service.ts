@@ -71,12 +71,29 @@ export class ResourcesService {
   /**
    * @param string userId
    */
-  async findAll(userId: string = null): Promise<Resource[] | undefined> {
+  async findAll(
+    userId: string = null,
+    query: {
+      pageSize: number;
+      pageNumber: number;
+    },
+  ): Promise<Collection | undefined> {
     const user = await this.getUser(userId);
+    const pageSize = query.pageSize
+      ? query.pageSize
+      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
+    const pageNumber = query.pageNumber ?? 1;
 
+    const skippedItems = (pageNumber - 1) * query.pageSize;
+
+    const totalCount = await this.resourceRepository.count({
+      where: { ...(user && { user: user }) },
+    });
     const resources = await this.resourceRepository.find({
       relations: ['resourceType', 'visibility', 'user'],
       where: { ...(user && { user: user }) },
+      take: pageSize,
+      skip: skippedItems,
     });
 
     const result = resources.map((item) => {
@@ -89,7 +106,13 @@ export class ResourcesService {
       return item;
     });
 
-    return result;
+    return {
+      items: result,
+      pageNumber:
+        typeof pageNumber === 'string' ? parseInt(pageNumber) : pageNumber,
+      pageSize: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
+      totalCount: totalCount,
+    };
   }
 
   /**

@@ -34,6 +34,12 @@ export class UserAttribute1615384748919 implements MigrationInterface {
             isNullable: true,
           },
           {
+            name: 'profileImage',
+            type: 'varchar',
+            length: '255',
+            isNullable: true,
+          },
+          {
             name: 'createdAt',
             type: 'TIMESTAMP',
             default: 'CURRENT_TIMESTAMP',

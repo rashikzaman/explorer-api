@@ -91,3 +91,7 @@ export const wonderCoverPhotoUploadInterceptor = FileInterceptor('coverPhoto', {
   }),
   fileFilter: imageFileFilter,
 });
+
+export const profleImageUploadInterceptor = FileInterceptor('profileImage', {
+  fileFilter: imageFileFilter,
+});

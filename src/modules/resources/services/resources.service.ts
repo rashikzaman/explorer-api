@@ -17,6 +17,7 @@ import { ResourceKeywordsService } from './resource-keywords.service';
 import { ConfigService } from '@nestjs/config';
 import { ResourceGroupByResourceType } from '../interfaces/resource-group-by-resourceType';
 import { use } from 'passport';
+import { S3FileService } from '../../aws/s3/services/s3-file.service';
 
 @Injectable()
 export class ResourcesService {
@@ -32,6 +33,7 @@ export class ResourcesService {
     private resourceKeywordRepository: Repository<ResourceKeyword>,
     private resourceKeywordsService: ResourceKeywordsService,
     private configService: ConfigService,
+    private s3FileService: S3FileService,
   ) {}
 
   async create(
@@ -51,19 +53,36 @@ export class ResourcesService {
     if (!visibility)
       throw new BadRequestException({ message: 'Visibility type not found' });
 
+    let s3Image = null;
+    let s3AudioClip = null;
+    if (createResourceDto.image) {
+      s3Image = await this.s3FileService.uploadPublicFile(
+        createResourceDto.image.buffer,
+        createResourceDto.image.originalname,
+        'resource/images',
+      );
+    }
+    if (createResourceDto.audioClip) {
+      s3AudioClip = await this.s3FileService.uploadPublicFile(
+        createResourceDto.audioClip.buffer,
+        createResourceDto.audioClip.originalname,
+        'resource/audioClips',
+      );
+    }
+
     const resource = await this.resourceRepository.save({
       title: createResourceDto.title,
       description: createResourceDto.description,
       user: user,
       visibility: visibility,
       resourceType: resourceType,
-      imageLink: createResourceDto.image,
-      audioClipLink: createResourceDto.audioClip,
+      imageLink: s3Image ? s3Image.key : null,
+      audioClipLink: s3AudioClip ? s3AudioClip.key : null,
       url: createResourceDto.url,
       urlImage: createResourceDto.urlImage,
     });
 
-    const resourceKeywords = await this.resourceKeywordsService.create(
+    await this.resourceKeywordsService.create(
       createResourceDto.keywords,
       resource,
     );
@@ -73,19 +92,42 @@ export class ResourcesService {
   /**
    * @param string userId
    */
-  async findAll(userId: string = null): Promise<Resource[] | undefined> {
+  async findAll(
+    userId: string = null,
+    query: {
+      pageSize: number;
+      pageNumber: number;
+    },
+  ): Promise<Collection | undefined> {
     const user = await this.getUser(userId);
+    const pageSize = query.pageSize
+      ? query.pageSize
+      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
+    const pageNumber = query.pageNumber ?? 1;
 
+    const skippedItems = (pageNumber - 1) * query.pageSize;
+
+    const totalCount = await this.resourceRepository.count({
+      where: { ...(user && { user: user }) },
+    });
     const resources = await this.resourceRepository.find({
       relations: ['resourceType', 'visibility', 'user'],
       where: { ...(user && { user: user }) },
+      take: pageSize,
+      skip: skippedItems,
     });
 
     const result = resources.map((item) => {
       return this.prepareResourceAfterFetch(item);
     });
 
-    return result;
+    return {
+      items: result,
+      pageNumber:
+        typeof pageNumber === 'string' ? parseInt(pageNumber) : pageNumber,
+      pageSize: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
+      totalCount: totalCount,
+    };
   }
 
   /**
@@ -131,20 +173,40 @@ export class ResourcesService {
         message: 'Visibility type not found',
       });
 
+    let s3Image = null;
+    let s3AudioClip = null;
+    if (updateResourceDto.image) {
+      s3Image = await this.s3FileService.uploadPublicFile(
+        updateResourceDto.image.buffer,
+        updateResourceDto.image.originalname,
+        'resource/images',
+      );
+    }
+    if (updateResourceDto.audioClip) {
+      s3AudioClip = await this.s3FileService.uploadPublicFile(
+        updateResourceDto.audioClip.buffer,
+        updateResourceDto.audioClip.originalname,
+        'resource/audioClips',
+      );
+    }
+
+    let imageLink = null;
+    let audioClipLink = null;
+    if (updateResourceDto.imageLink) imageLink = updateResourceDto.imageLink;
+    if (updateResourceDto.audioClipLink)
+      audioClipLink = updateResourceDto.audioClipLink;
+
     resource.title = updateResourceDto.title;
     resource.url = updateResourceDto.url;
     resource.user = user;
     resource.visibility = visibility;
     resource.description = updateResourceDto.description;
-    resource.imageLink = updateResourceDto.image;
-    resource.audioClipLink = updateResourceDto.audioClip;
+    resource.imageLink = s3Image ? s3Image.key : imageLink;
+    resource.audioClipLink = s3AudioClip ? s3AudioClip.key : audioClipLink;
     resource.urlImage = updateResourceDto.urlImage;
     const result = await this.resourceRepository.save(resource);
 
-    const resourceKeywords = this.resourceKeywordsService.update(
-      updateResourceDto.keywords,
-      result,
-    );
+    this.resourceKeywordsService.update(updateResourceDto.keywords, result);
 
     return result;
   }

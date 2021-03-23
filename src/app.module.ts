@@ -17,6 +17,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { CoreModule } from './modules/core/core.module';
 import { MetadataModule } from './modules/metadata/metadata.module';
+import { AwsModule } from './modules/aws/aws.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { MetadataModule } from './modules/metadata/metadata.module';
     WonderResourceModule,
     CoreModule,
     MetadataModule,
+    AwsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

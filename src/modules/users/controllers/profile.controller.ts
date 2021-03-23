@@ -6,7 +6,7 @@ import {
   UserAuthUpdate,
 } from '../../core/decorators/auth.decorator';
 import { ProfileUpdateDto } from '../models/dto/profiile-update.dto';
-import { profleImageUploadInterceptor } from 'src/utils/file-upload';
+import { profleImageUploadInterceptor } from '../../../utils/file-upload';
 
 
 @Controller('profile')

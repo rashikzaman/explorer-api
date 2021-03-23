@@ -76,12 +76,12 @@ export const resourceFileUploadInterceptor = FileFieldsInterceptor(
     { name: 'image', maxCount: 1 },
     { name: 'audioClip', maxCount: 1 },
   ],
-  {
-    storage: diskStorage({
-      destination: resourceFileDestinationUploader,
-      filename: updateFileName,
-    }),
-  },
+  // {
+  //   storage: diskStorage({
+  //     destination: resourceFileDestinationUploader,
+  //     filename: updateFileName,
+  //   }),
+  // },
 );
 
 export const wonderCoverPhotoUploadInterceptor = FileInterceptor('coverPhoto', {

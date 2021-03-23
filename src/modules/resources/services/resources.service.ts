@@ -15,6 +15,8 @@ import { ResourceType } from '../models/entities/resource-type.entity';
 import { ResourceKeyword } from '../models/entities/resource-keyword.entity';
 import { ResourceKeywordsService } from './resource-keywords.service';
 import { ConfigService } from '@nestjs/config';
+import { ResourceGroupByResourceType } from '../interfaces/resource-group-by-resourceType';
+import { use } from 'passport';
 
 @Injectable()
 export class ResourcesService {
@@ -80,13 +82,7 @@ export class ResourcesService {
     });
 
     const result = resources.map((item) => {
-      item.imageLink = item.imageLink
-        ? this.configService.get('HOST_API') + item.imageLink
-        : null;
-      item.audioClipLink = item.audioClipLink
-        ? this.configService.get('HOST_API') + item.audioClipLink
-        : null;
-      return item;
+      return this.prepareResourceAfterFetch(item);
     });
 
     return result;
@@ -103,14 +99,8 @@ export class ResourcesService {
       relations: ['resourceType', 'visibility', 'user', 'resourceKeywords'],
       where: { ...(user && { user: user }) },
     });
-    resource.imageLink = resource.imageLink
-      ? this.configService.get('HOST_API') + resource.imageLink
-      : null;
-    resource.audioClipLink = resource.audioClipLink
-      ? this.configService.get('HOST_API') + resource.audioClipLink
-      : null;
     if (!resource) throw new NotFoundException();
-    return resource;
+    return this.prepareResourceAfterFetch(resource);
   }
 
   async update(
@@ -174,6 +164,57 @@ export class ResourcesService {
     const result = await this.resourceRepository.delete(id);
     if (result && result.affected === 0) throw new NotFoundException();
     return result;
+  }
+
+  async groupResourcesByResourceType(
+    userId: string,
+  ): Promise<Array<ResourceGroupByResourceType>> {
+    const resourceTypes = await this.resourceTypeRepository.find({});
+    const resourceGroupData = [];
+    const user = await this.getUser(userId);
+
+    await Promise.all(
+      resourceTypes.map(async (item) => {
+        const data: ResourceGroupByResourceType = {
+          id: item.id,
+          type: item.type,
+          resources: await this.getResourcesByResourceType(item, user, 3),
+        };
+        resourceGroupData.push(data);
+        return item;
+      }),
+    );
+
+    return resourceGroupData;
+  }
+
+  async getResourcesByResourceType(
+    resourceType: ResourceType,
+    user: User,
+    limit = 3,
+  ) {
+    const resources = await this.resourceRepository.find({
+      where: { resourceType: resourceType, user: user },
+      order: { id: 'DESC' },
+      take: limit,
+    });
+
+    resources.map((item) => {
+      item.resourceType = resourceType;
+      return item;
+    });
+
+    return resources;
+  }
+
+  prepareResourceAfterFetch(resource: Resource) {
+    resource.imageLink = resource.imageLink
+      ? this.configService.get('HOST_API') + resource.imageLink
+      : null;
+    resource.audioClipLink = resource.audioClipLink
+      ? this.configService.get('HOST_API') + resource.audioClipLink
+      : null;
+    return resource;
   }
 
   async getUser(userId): Promise<User | null> {

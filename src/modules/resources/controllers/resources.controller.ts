@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
-import { UpdateResourceDto } from '../models/dto/update-resource.dto';;
+import { UpdateResourceDto } from '../models/dto/update-resource.dto';
 import { resourceFileUploadInterceptor } from '../../../utils/file-upload';
 import { JoiValidationPipe } from '../../../validation.pipe';
 import {
@@ -106,5 +106,11 @@ export class ResourcesController {
     const result = await this.resourcesService.remove(+id, req.user.userId);
     if (result) return { message: 'Resource deleted', status: 'success' };
     else return { message: "Can't delete the resource", status: 'failure' };
+  }
+
+  @Get('group/resource-types')
+  @UserAuthFind()
+  async groupResourcesByResourceTypes(@Request() req: any) {
+    return this.resourcesService.groupResourcesByResourceType(req.user.userId);
   }
 }

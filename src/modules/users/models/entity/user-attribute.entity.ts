@@ -22,6 +22,9 @@ export class UserAttribute {
   @Column({ nullable: true })
   instagramUserName: string;
 
+  @Column({ nullable: true })
+  profileImage: string;
+
   @ManyToOne(() => User)
   user: User;
 

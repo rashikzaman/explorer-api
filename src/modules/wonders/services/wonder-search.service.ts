@@ -15,11 +15,11 @@ export class WonderSearchService {
     private visibilityService: VisibilityService,
   ) {}
 
-  async searchWonders(searchTerm): Promise<Wonder[] | undefined> {
+  async searchWonders(searchTerm, limit: 12): Promise<Wonder[] | undefined> {
     const wonders = await this.wonderRepository.find({
       where: { title: Like(`%${searchTerm}%`) },
       order: { id: 'DESC' },
-      take: 12,
+      take: limit,
     });
     return wonders;
   }

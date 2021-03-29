@@ -28,11 +28,14 @@ export class ResourceSearchService {
     private resourceHelper: ResourceHelper,
   ) {}
 
-  async searchResources(searchTerm: string): Promise<Array<Resource>> {
+  async searchResources(
+    searchTerm: string,
+    limit: 12,
+  ): Promise<Array<Resource>> {
     const resources = await this.resourceRepository.find({
       where: { title: Like(`%${searchTerm}%`) },
       order: { id: 'DESC' },
-      take: 12,
+      take: limit,
       relations: ['visibility', 'resourceType'],
     });
 

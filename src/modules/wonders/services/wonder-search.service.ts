@@ -23,5 +23,4 @@ export class WonderSearchService {
     });
     return wonders;
   }
-
 }

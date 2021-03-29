@@ -16,6 +16,8 @@ import { ResourceKeyword } from './models/entities/resource-keyword.entity';
 import { ResourceKeywordsService } from './services/resource-keywords.service';
 import { ConfigService } from '@nestjs/config';
 import { S3FileService } from '../aws/s3/services/s3-file.service';
+import { ResourceSearchService } from './services/resource-search.service';
+import { ResourceHelper } from './helpers/resource-helper';
 
 @Module({
   controllers: [
@@ -30,6 +32,8 @@ import { S3FileService } from '../aws/s3/services/s3-file.service';
     ResourceKeywordsService,
     ConfigService,
     S3FileService,
+    ResourceSearchService,
+    ResourceHelper,
   ],
   imports: [
     TypeOrmModule.forFeature([
@@ -41,5 +45,6 @@ import { S3FileService } from '../aws/s3/services/s3-file.service';
       ResourceKeyword,
     ]),
   ],
+  exports: [ResourcesService, ResourceSearchService],
 })
 export class ResourcesModule {}

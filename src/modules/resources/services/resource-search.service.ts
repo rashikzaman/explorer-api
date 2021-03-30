@@ -30,7 +30,7 @@ export class ResourceSearchService {
 
   async searchResources(
     searchTerm: string,
-    limit: 12,
+    limit = 12,
   ): Promise<Array<Resource>> {
     const resources = await this.resourceRepository.find({
       where: { title: Like(`%${searchTerm}%`) },

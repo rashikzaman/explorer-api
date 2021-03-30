@@ -38,10 +38,10 @@ import { SearchModule } from './modules/search/search.module';
     WondersModule,
     VisibilityModule,
     WonderResourceModule,
-    CoreModule,
     MetadataModule,
     AwsModule,
     SearchModule,
+    CoreModule, //this module has to be the last module
   ],
   controllers: [AppController],
   providers: [AppService],

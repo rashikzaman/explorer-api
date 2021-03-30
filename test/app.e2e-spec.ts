@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
@@ -185,6 +186,16 @@ describe('App Api', () => {
   });
 
   /** Wonder ends */
+
+  /** Search Starts */
+
+  it(`Search: if search with a search term, it should return 200`, async () => {
+    const result = await request(app.getHttpServer())
+      .get(`/search?term=r`);
+    expect(result.status).toBe(200);
+  });
+  
+  /** Search Ends */
 
   afterAll(async () => {
     await app.close();

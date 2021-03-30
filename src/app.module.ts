@@ -18,6 +18,7 @@ import { join } from 'path';
 import { CoreModule } from './modules/core/core.module';
 import { MetadataModule } from './modules/metadata/metadata.module';
 import { AwsModule } from './modules/aws/aws.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AwsModule } from './modules/aws/aws.module';
     WonderResourceModule,
     MetadataModule,
     AwsModule,
+    SearchModule,
     CoreModule, //this module has to be the last module
   ],
   controllers: [AppController],

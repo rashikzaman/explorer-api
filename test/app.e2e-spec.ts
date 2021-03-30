@@ -1,10 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppModule } from '../src/app.module';
-import * as fs from 'fs';
 
 describe('App Api', () => {
   let app: INestApplication;

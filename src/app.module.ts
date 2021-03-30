@@ -37,9 +37,9 @@ import { AwsModule } from './modules/aws/aws.module';
     WondersModule,
     VisibilityModule,
     WonderResourceModule,
-    CoreModule,
     MetadataModule,
     AwsModule,
+    CoreModule, //this module has to be the last module
   ],
   controllers: [AppController],
   providers: [AppService],

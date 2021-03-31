@@ -135,6 +135,13 @@ describe('App Api', () => {
     expect(result.status).toBe(200);
   });
 
+  it(`Resource: if fetching resources with pageSize, pageNumber and resourceId, it should return 200`, async () => {
+    const result = await request(app.getHttpServer())
+      .get(`/resources?pageSize=30&pageNumber=1&resourceTypeId=1`)
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(200);
+  });
+
   /** Resources End */
 
   /** Wonder begins */

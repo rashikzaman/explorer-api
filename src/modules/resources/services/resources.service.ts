@@ -16,8 +16,9 @@ import { ResourceKeyword } from '../models/entities/resource-keyword.entity';
 import { ResourceKeywordsService } from './resource-keywords.service';
 import { ConfigService } from '@nestjs/config';
 import { ResourceGroupByResourceType } from '../interfaces/resource-group-by-resourceType';
-import { use } from 'passport';
+import { getRepository } from 'typeorm';
 import { S3FileService } from '../../aws/s3/services/s3-file.service';
+import { getConnection } from 'typeorm';
 
 @Injectable()
 export class ResourcesService {
@@ -97,6 +98,7 @@ export class ResourcesService {
     query: {
       pageSize: number;
       pageNumber: number;
+      resourceTypeId: number;
     },
   ): Promise<Collection | undefined> {
     const user = await this.getUser(userId);
@@ -105,17 +107,27 @@ export class ResourcesService {
       : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
     const pageNumber = query.pageNumber ?? 1;
 
-    const skippedItems = (pageNumber - 1) * query.pageSize;
+    const skippedItems = (pageNumber - 1) * pageSize;
 
     const totalCount = await this.resourceRepository.count({
       where: { ...(user && { user: user }) },
     });
-    const resources = await this.resourceRepository.find({
-      relations: ['resourceType', 'visibility', 'user'],
-      where: { ...(user && { user: user }) },
-      take: pageSize,
-      skip: skippedItems,
-    });
+
+    let sqlQuery = await this.resourceRepository
+      .createQueryBuilder('resource')
+      .leftJoinAndSelect('resource.resourceType', 'resoureceType')
+      .leftJoinAndSelect('resource.visibility', 'visibility')
+      .where('resource.userId = :userId', { userId: userId });
+
+    if (query.resourceTypeId)
+      sqlQuery = sqlQuery.where('resource.resourceTypeId = :resourceTypeId', {
+        resourceTypeId: query.resourceTypeId,
+      });
+
+    const resources = await sqlQuery
+      .take(pageSize)
+      .skip(skippedItems)
+      .getMany();
 
     const result = resources.map((item) => {
       return this.prepareResourceAfterFetch(item);

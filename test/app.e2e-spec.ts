@@ -1,10 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppModule } from '../src/app.module';
-import * as fs from 'fs';
 
 describe('App Api', () => {
   let app: INestApplication;
@@ -132,6 +131,13 @@ describe('App Api', () => {
   it(`Resource: if deleting one resource with parameter, it should return 200`, async () => {
     const result = await request(app.getHttpServer())
       .delete(`/resources/${resourceId}`)
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(200);
+  });
+
+  it(`Resource: if fetching resources with pageSize, pageNumber and resourceId, it should return 200`, async () => {
+    const result = await request(app.getHttpServer())
+      .get(`/resources?pageSize=30&pageNumber=1&resourceTypeId=1`)
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(result.status).toBe(200);
   });

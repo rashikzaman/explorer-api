@@ -76,7 +76,8 @@ export class ResourcesController {
   @UserAuthFindAll()
   findAll(
     @Request() req,
-    @Query() query: { pageSize: number; pageNumber: number },
+    @Query()
+    query: { pageSize: number; pageNumber: number; resourceTypeId: number },
   ) {
     return this.resourcesService.findAll(req.user.userId, query);
   }

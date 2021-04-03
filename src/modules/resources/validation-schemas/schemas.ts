@@ -10,6 +10,7 @@ export const createResourceSchema = Joi.object({
   urlImage: Joi.string().max(255),
   audioClip: Joi.any(),
   keywords: Joi.array().items(Joi.string()),
+  wonderId: Joi.number(),
 });
 
 export const updateResourceSchema = Joi.object({
@@ -24,4 +25,5 @@ export const updateResourceSchema = Joi.object({
   keywords: Joi.array().items(Joi.string()),
   imageLink: Joi.string().optional().allow(''),
   audioClipLink: Joi.string().optional().allow(''),
+  wonderId: Joi.number(),
 });

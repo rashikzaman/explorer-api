@@ -34,6 +34,13 @@ export class CreateResourceDto {
   visibilityTypeId: number;
 
   @ApiProperty({
+    type: Number,
+    description: 'Wonder Id',
+    required: false,
+  })
+  wonderId: number;
+
+  @ApiProperty({
     type: String,
     description: 'Image file',
     required: false,

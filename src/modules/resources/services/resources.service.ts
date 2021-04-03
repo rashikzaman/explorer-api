@@ -19,12 +19,15 @@ import { ResourceGroupByResourceType } from '../interfaces/resource-group-by-res
 import { getRepository } from 'typeorm';
 import { S3FileService } from '../../aws/s3/services/s3-file.service';
 import { getConnection } from 'typeorm';
+import { Wonder } from '../../wonders/models/entities/wonder.entity';
 
 @Injectable()
 export class ResourcesService {
   constructor(
     @InjectRepository(Resource)
     private resourceRepository: Repository<Resource>,
+    @InjectRepository(Wonder)
+    private wonderRepository: Repository<Wonder>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Visibility)
     private visibilityRepository: Repository<Visibility>,
@@ -47,12 +50,21 @@ export class ResourcesService {
     const visibility = await this.visibilityRepository.findOne(
       createResourceDto.visibilityTypeId,
     );
+    const wonder = await this.wonderRepository.findOne({
+      where: {
+        id: createResourceDto.wonderId,
+        user: user,
+      },
+    });
 
     if (!resourceType)
       throw new BadRequestException({ message: 'Resource type not found' });
 
     if (!visibility)
       throw new BadRequestException({ message: 'Visibility type not found' });
+
+    if (createResourceDto.wonderId && !wonder)
+      throw new BadRequestException({ message: 'Wonder not found' });
 
     let s3Image = null;
     let s3AudioClip = null;
@@ -77,6 +89,7 @@ export class ResourcesService {
       user: user,
       visibility: visibility,
       resourceType: resourceType,
+      wonder: wonder,
       imageLink: s3Image ? s3Image.key : null,
       audioClipLink: s3AudioClip ? s3AudioClip.key : null,
       url: createResourceDto.url,
@@ -117,6 +130,7 @@ export class ResourcesService {
       .createQueryBuilder('resource')
       .leftJoinAndSelect('resource.resourceType', 'resoureceType')
       .leftJoinAndSelect('resource.visibility', 'visibility')
+      .leftJoinAndSelect('resource.wonder', 'wonder')
       .where('resource.userId = :userId', { userId: userId });
 
     if (query.resourceTypeId)

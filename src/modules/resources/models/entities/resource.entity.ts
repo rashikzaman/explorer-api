@@ -12,8 +12,8 @@ import {
 
 import { User } from '../../../users/models/entity/user.entity';
 import { ResourceType } from './resource-type.entity';
-import { type } from 'os';
 import { ResourceKeyword } from './resource-keyword.entity';
+import { Wonder } from '../../../wonders/models/entities/wonder.entity';
 
 @Entity()
 export class Resource {
@@ -25,19 +25,19 @@ export class Resource {
   @JoinColumn()
   user: User;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 255 })
   title: string;
 
   @Column('text', { nullable: true })
   description: string;
 
-  @Column({ nullable: true, type: 'varchar', length: 100 })
+  @Column({ nullable: true, type: 'varchar', length: 255 })
   url: string;
 
-  @Column({ nullable: true, type: 'varchar', length: 100 })
+  @Column({ nullable: true, type: 'varchar', length: 255 })
   audioClipLink: string;
 
-  @Column({ nullable: true, type: 'varchar', length: 100 })
+  @Column({ nullable: true, type: 'varchar', length: 255 })
   imageLink: string;
 
   @ManyToOne(() => Visibility)
@@ -47,6 +47,10 @@ export class Resource {
   @ManyToOne(() => ResourceType)
   @JoinColumn()
   resourceType: ResourceType;
+
+  @ManyToOne(() => Wonder)
+  @JoinColumn()
+  wonder: Wonder;
 
   @OneToMany(
     () => ResourceKeyword,

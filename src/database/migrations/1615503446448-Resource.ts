@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class Wonder1614016987238 implements MigrationInterface {
-  public async up(queryRunner: QueryRunner): Promise<any> {
+export class Resource1614003446448 implements MigrationInterface {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'wonder',
+        name: 'resource',
         columns: [
           {
             name: 'id',
@@ -16,7 +16,7 @@ export class Wonder1614016987238 implements MigrationInterface {
           {
             name: 'title',
             type: 'varchar',
-            length: '100',
+            length: '255',
           },
           {
             name: 'description',
@@ -24,11 +24,25 @@ export class Wonder1614016987238 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'userId',
-            type: 'int',
+            name: 'url',
+            type: 'varchar',
+            length: '255',
+            isNullable: true,
           },
           {
-            name: 'coverPhotoUrl',
+            name: 'audioClipLink',
+            type: 'varchar',
+            length: '255',
+            isNullable: true,
+          },
+          {
+            name: 'imageLink',
+            type: 'varchar',
+            length: '255',
+            isNullable: true,
+          },
+          {
+            name: 'urlImage',
             type: 'varchar',
             length: '255',
             isNullable: true,
@@ -36,6 +50,19 @@ export class Wonder1614016987238 implements MigrationInterface {
           {
             name: 'visibilityId',
             type: 'int',
+          },
+          {
+            name: 'resourceTypeId',
+            type: 'int',
+          },
+          {
+            name: 'userId',
+            type: 'int',
+          },
+          {
+            name: 'wonderId',
+            type: 'int',
+            isNullable: true,
           },
           {
             name: 'createdAt',
@@ -51,16 +78,24 @@ export class Wonder1614016987238 implements MigrationInterface {
         ],
         foreignKeys: [
           {
-            name: 'wonder',
             columnNames: ['userId'],
             referencedColumnNames: ['id'],
             referencedTableName: 'user',
           },
           {
-            name: 'visibility',
             columnNames: ['visibilityId'],
             referencedColumnNames: ['id'],
             referencedTableName: 'visibility',
+          },
+          {
+            columnNames: ['resourceTypeId'],
+            referencedColumnNames: ['id'],
+            referencedTableName: 'resource_type',
+          },
+          {
+            columnNames: ['wonderId'],
+            referencedColumnNames: ['id'],
+            referencedTableName: 'wonder',
           },
         ],
       }),
@@ -68,5 +103,5 @@ export class Wonder1614016987238 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<any> {}
+  public async down(queryRunner: QueryRunner): Promise<void> {}
 }

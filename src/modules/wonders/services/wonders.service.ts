@@ -10,6 +10,8 @@ import { UpdateWonderDto } from '../models/dto/update-wonder.dto';
 import { Wonder } from '../models/entities/wonder.entity';
 import { User } from '../../users/models/entity/user.entity';
 import { VisibilityService } from '../../visibility/services/visibility.service';
+import { ResourcesService } from '../../resources/services/resources.service';
+import { ResourceHelper } from '../../resources/helpers/resource-helper';
 
 @Injectable()
 export class WondersService {
@@ -18,10 +20,12 @@ export class WondersService {
     private wonderRepository: Repository<Wonder>,
     @InjectRepository(User) private userRepository: Repository<User>,
     private visibilityService: VisibilityService,
+    private resourceService: ResourcesService,
+    private resourceHelper: ResourceHelper,
   ) {}
 
   async create(createWonderDto: CreateWonderDto): Promise<Wonder | undefined> {
-    const user = await this.userRepository.findOne(createWonderDto.userId);
+    const user = await this.getUser(createWonderDto.userId);
     const visibility = await this.visibilityService.getVisibility(
       createWonderDto.visibilityId,
     );
@@ -43,6 +47,15 @@ export class WondersService {
       where: { ...(user && { user: user }) },
     });
 
+    await Promise.all(
+      wonders.map(async (wonder) => {
+        wonder.coverPhotoUrl = await this.addCoverPhotoOfWonder(
+          wonder.id,
+          +userId,
+        );
+      }),
+    );
+
     return wonders;
   }
 
@@ -57,6 +70,8 @@ export class WondersService {
       where: { ...(user && { user: user }) },
     });
     if (!wonder) throw new NotFoundException();
+
+    wonder.coverPhotoUrl = await this.addCoverPhotoOfWonder(wonder.id, +userId);
     return wonder;
   }
 
@@ -85,6 +100,20 @@ export class WondersService {
     const result = await this.wonderRepository.delete(id);
     if (!result || result.affected === 0) throw new NotFoundException();
     return result;
+  }
+
+  async addCoverPhotoOfWonder(wonderId: number, userId: number) {
+    const resource = await this.resourceService.getUserLatestResourceByWonderId(
+      +userId,
+      wonderId,
+    );
+    let coverPhotoUrl = null;
+    if (resource) {
+      if (resource.imageLink)
+        coverPhotoUrl = this.resourceHelper.appendDomainToImageLink(resource);
+      else if (resource.urlImage) coverPhotoUrl = resource.urlImage;
+    }
+    return coverPhotoUrl;
   }
 
   async getUser(userId): Promise<User | null> {

@@ -64,6 +64,13 @@ export class CreateResourceDto {
   urlImage: string;
 
   @ApiProperty({
+    type: String,
+    description: 'Is Special',
+    required: false,
+  })
+  isSpecial: string;
+
+  @ApiProperty({
     type: Array,
     description: 'Resource Keywords',
     required: false,

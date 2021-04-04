@@ -94,6 +94,7 @@ export class ResourcesService {
       audioClipLink: s3AudioClip ? s3AudioClip.key : null,
       url: createResourceDto.url,
       urlImage: createResourceDto.urlImage,
+      isSpecial: createResourceDto.isSpecial === 'true',
     });
 
     await this.resourceKeywordsService.create(
@@ -230,6 +231,7 @@ export class ResourcesService {
     resource.imageLink = s3Image ? s3Image.key : imageLink;
     resource.audioClipLink = s3AudioClip ? s3AudioClip.key : audioClipLink;
     resource.urlImage = updateResourceDto.urlImage;
+    resource.isSpecial = updateResourceDto.isSpecial === 'true';
     const result = await this.resourceRepository.save(resource);
 
     this.resourceKeywordsService.update(updateResourceDto.keywords, result);

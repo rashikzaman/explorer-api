@@ -65,7 +65,7 @@ export class CreateResourceDto {
 
   @ApiProperty({
     type: String,
-    description: 'Is Special',
+    description: 'Is Special, string can be true/false',
     required: false,
   })
   isSpecial: string;

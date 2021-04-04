@@ -8,9 +8,7 @@ export class ResourceHelper {
 
   prepareResourceAfterFetch(resource: Resource) {
     resource.imageLink = this.appendDomainToImageLink(resource);
-    resource.audioClipLink = resource.audioClipLink
-      ? this.configService.get('AWS_BUCKET_DOMAIN') + resource.audioClipLink
-      : null;
+    resource.audioClipLink = this.appendDomainToAudionLink(resource);
     return resource;
   }
 

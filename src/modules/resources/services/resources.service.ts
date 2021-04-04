@@ -295,6 +295,17 @@ export class ResourcesService {
     return resources;
   }
 
+  async getUserLatestResourceByWonderId(userId: number, wonderId: number) {
+    const resource = await this.resourceRepository
+      .createQueryBuilder('resource')
+      .where('resource.userId = :userId', { userId: userId })
+      .where('resource.wonderId = :wonderId', { wonderId: wonderId })
+      .orderBy('resource.id', 'DESC')
+      .getOne();
+
+    return resource;
+  }
+
   prepareResourceAfterFetch(resource: Resource) {
     resource.imageLink = resource.imageLink
       ? this.configService.get('AWS_CLOUDFRONT_DOMAIN') + resource.imageLink

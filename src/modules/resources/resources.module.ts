@@ -47,6 +47,6 @@ import { Wonder } from '../wonders/models/entities/wonder.entity';
       Wonder,
     ]),
   ],
-  exports: [ResourcesService, ResourceSearchService],
+  exports: [ResourcesService, ResourceSearchService, ResourceHelper],
 })
 export class ResourcesModule {}

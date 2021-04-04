@@ -7,12 +7,22 @@ export class ResourceHelper {
   constructor(private configService: ConfigService) {}
 
   prepareResourceAfterFetch(resource: Resource) {
-    resource.imageLink = resource.imageLink
+    resource.imageLink = this.appendDomainToImageLink(resource);
+    resource.audioClipLink = this.appendDomainToAudionLink(resource);
+    return resource;
+  }
+
+  appendDomainToImageLink(resource: Resource): string {
+    const imageLink = resource.imageLink
       ? this.configService.get('AWS_CLOUDFRONT_DOMAIN') + resource.imageLink
       : null;
-    resource.audioClipLink = resource.audioClipLink
+    return imageLink;
+  }
+
+  appendDomainToAudionLink(resource: Resource): string {
+    const audioClipLink = resource.audioClipLink
       ? this.configService.get('AWS_BUCKET_DOMAIN') + resource.audioClipLink
       : null;
-    return resource;
+    return audioClipLink;
   }
 }

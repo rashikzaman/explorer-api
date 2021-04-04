@@ -61,6 +61,9 @@ export class Resource {
   @Column({ type: 'varchar', length: 200, nullable: true })
   urlImage: string;
 
+  @Column({ default: false })
+  isSpecial: boolean;
+
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',

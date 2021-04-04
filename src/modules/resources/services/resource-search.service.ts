@@ -32,17 +32,19 @@ export class ResourceSearchService {
     searchTerm: string,
     limit = 12,
   ): Promise<Array<Resource>> {
-    const resources = await this.resourceRepository.find({
-      where: { title: Like(`%${searchTerm}%`) },
-      order: { id: 'DESC' },
-      take: limit,
-      relations: ['visibility', 'resourceType'],
-    });
+    let sqlQuery = await this.resourceRepository
+      .createQueryBuilder('resource')
+      .leftJoinAndSelect('resource.resourceType', 'resoureceType')
+      .leftJoinAndSelect('resource.visibility', 'visibility')
+      .leftJoinAndSelect('resource.wonder', 'wonder')
+      .leftJoinAndSelect('resource.resourceKeywords', 'resourceKeywords')
+      .where('resource.title like :title', { title: `%${searchTerm}%` })
+      .orWhere('resourceKeywords.name like :name', { name: `%${searchTerm}%` });
 
+    const resources = await sqlQuery.take(limit).getMany();
     resources.map((item) => {
       return this.resourceHelper.prepareResourceAfterFetch(item);
     });
-
     return resources;
   }
 }

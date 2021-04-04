@@ -21,7 +21,7 @@ import { join } from 'path';
             from: '"mail module" <wondered@nestjs.com>',
           },
           template: {
-            dir: join(__dirname, '../../', 'templates'),
+            dir: join(__dirname, '../../', 'templates/mail'),
             adapter: new HandlebarsAdapter(),
             options: {
               strict: true,

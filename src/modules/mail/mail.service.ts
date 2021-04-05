@@ -25,7 +25,7 @@ export class MailService {
     if (this.checkIfMailEnabled()) {
       const result = await this.mailerService.sendMail({
         to: recipientMail, // list of receivers
-        from: 'noreply@nestjs.com', // sender address
+        from: 'mail@wondered.io', // sender address
         subject: 'Verification code for Wondered', // Subject line
         template: 'verification-code', // The `.pug`, `.ejs` or `.hbs` extension is appended automatically.
         context: {
@@ -44,7 +44,7 @@ export class MailService {
     if (this.checkIfMailEnabled()) {
       const result = await this.mailerService.sendMail({
         to: recipientMail, // list of receivers
-        from: 'noreply@nestjs.com', // sender address
+        from: 'mail@wondered.io', // sender address
         subject: 'Password Reset Token For Wondered', // Subject line
         template: 'password-reset-token', // The `.pug`, `.ejs` or `.hbs` extension is appended automatically.
         context: {

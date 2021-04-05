@@ -16,7 +16,7 @@ import { join } from 'path';
         return {
           transport: `smtps://${configService.get(
             'MAILGUN_SMTP_USERNAME',
-          )}:${configService.get('MAILGUN_SMTP_PASSWORD')}@smtp.mailgun.org`,
+          )}:${configService.get('MAILGUN_SMTP_PASSWORD')}@smtp.eu.mailgun.org`,
           defaults: {
             from: '"mail module" <wondered@nestjs.com>',
           },

@@ -5,6 +5,7 @@ import { Wonder } from '../models/entities/wonder.entity';
 import { User } from '../../users/models/entity/user.entity';
 import { VisibilityService } from '../../visibility/services/visibility.service';
 import { Like } from 'typeorm';
+import { WondersService } from './wonders.service';
 
 @Injectable()
 export class WonderSearchService {
@@ -13,6 +14,7 @@ export class WonderSearchService {
     private wonderRepository: Repository<Wonder>,
     @InjectRepository(User) private userRepository: Repository<User>,
     private visibilityService: VisibilityService,
+    private wonderService: WondersService,
   ) {}
 
   async searchWonders(
@@ -31,7 +33,17 @@ export class WonderSearchService {
       });
     }
 
-    const wonders = sqlQuery.take(limit).getMany();
+    const wonders = await sqlQuery.take(limit).getMany();
+
+    await Promise.all(
+      wonders.map(async (wonder) => {
+        wonder.coverPhotoUrl = await this.wonderService.addCoverPhotoOfWonder(
+          wonder.id,
+          +userId,
+        );
+      }),
+    );
+
     return wonders;
   }
 }

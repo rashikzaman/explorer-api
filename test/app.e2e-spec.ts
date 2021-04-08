@@ -200,6 +200,19 @@ describe('App Api', () => {
       .get(`/search?term=r`);
     expect(result.status).toBe(200);
   });
+
+  it(`Search Profile: if search with a search term but without token, it should return 401`, async () => {
+    const result = await request(app.getHttpServer())
+      .get(`/search/profile?term=r`);
+    expect(result.status).toBe(401);
+  });
+
+  it(`Search Profile: if search with a search term but with token, it should return 200`, async () => {
+    const result = await request(app.getHttpServer())
+      .get(`/search/profile?term=r`)
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(200);
+  });
   
   /** Search Ends */
 

@@ -16,11 +16,24 @@ export class SearchService {
     private wonderResourceService: WonderSearchService,
   ) {}
 
-  async search(searchTerm: string): Promise<SearchCollection> {
+  async search(
+    searchTerm: string,
+    userId = null,
+    forProfile = false,
+    pageLimit = 12,
+  ): Promise<SearchCollection> {
     const resources = await this.resourceSearchService.searchResources(
       searchTerm,
+      userId,
+      forProfile,
+      pageLimit,
     );
-    const wonders = await this.wonderResourceService.searchWonders(searchTerm);
+    const wonders = await this.wonderResourceService.searchWonders(
+      searchTerm,
+      userId,
+      forProfile,
+      pageLimit,
+    );
 
     return {
       resources: resources,

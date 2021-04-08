@@ -30,6 +30,8 @@ export class ResourceSearchService {
 
   async searchResources(
     searchTerm: string,
+    userId: number,
+    forProfile = false,
     limit = 12,
   ): Promise<Array<Resource>> {
     let sqlQuery = await this.resourceRepository
@@ -38,8 +40,14 @@ export class ResourceSearchService {
       .leftJoinAndSelect('resource.visibility', 'visibility')
       .leftJoinAndSelect('resource.wonder', 'wonder')
       .leftJoinAndSelect('resource.resourceKeywords', 'resourceKeywords')
-      .where('resource.title like :title', { title: `%${searchTerm}%` })
-      .orWhere('resourceKeywords.name like :name', { name: `%${searchTerm}%` });
+      .where('resource.title like :title', { title: `%${searchTerm}%` });
+    //.orWhere('resourceKeywords.name like :name', { name: `%${searchTerm}%` });
+
+    if (forProfile) {
+      sqlQuery = sqlQuery.andWhere('resource.userId = :userId', {
+        userId: userId,
+      });
+    }
 
     const resources = await sqlQuery.take(limit).getMany();
     resources.map((item) => {

@@ -15,12 +15,23 @@ export class WonderSearchService {
     private visibilityService: VisibilityService,
   ) {}
 
-  async searchWonders(searchTerm, limit = 12): Promise<Wonder[] | undefined> {
-    const wonders = await this.wonderRepository.find({
-      where: { title: Like(`%${searchTerm}%`) },
-      order: { id: 'DESC' },
-      take: limit,
-    });
+  async searchWonders(
+    searchTerm,
+    userId = null,
+    forProfile = false,
+    limit = 12,
+  ): Promise<Wonder[] | undefined> {
+    let sqlQuery = this.wonderRepository
+      .createQueryBuilder('wonder')
+      .where('wonder.title like :title', { title: `%${searchTerm}%` });
+
+    if (forProfile) {
+      sqlQuery = sqlQuery.andWhere('wonder.userId = :userId', {
+        userId: userId,
+      });
+    }
+
+    const wonders = sqlQuery.take(limit).getMany();
     return wonders;
   }
 }

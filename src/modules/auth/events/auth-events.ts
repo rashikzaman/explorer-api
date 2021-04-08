@@ -25,6 +25,6 @@ export class AuthEvents {
 
   @OnEvent(authEventsType.resetPasswordTokenGenerated)
   sendMailWithResetPassword(payload: { email: string; token: string }) {
-    this.mailService.sendMailWithVerificationCode(payload.email, payload.token);
+    this.mailService.sendMailWithResetPassword(payload.email, payload.token);
   }
 }

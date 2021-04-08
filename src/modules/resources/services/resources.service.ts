@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -16,10 +17,10 @@ import { ResourceKeyword } from '../models/entities/resource-keyword.entity';
 import { ResourceKeywordsService } from './resource-keywords.service';
 import { ConfigService } from '@nestjs/config';
 import { ResourceGroupByResourceType } from '../interfaces/resource-group-by-resourceType';
-import { getRepository } from 'typeorm';
 import { S3FileService } from '../../aws/s3/services/s3-file.service';
-import { getConnection } from 'typeorm';
 import { Wonder } from '../../wonders/models/entities/wonder.entity';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class ResourcesService {
@@ -38,6 +39,7 @@ export class ResourcesService {
     private resourceKeywordsService: ResourceKeywordsService,
     private configService: ConfigService,
     private s3FileService: S3FileService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async create(

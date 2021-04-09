@@ -12,8 +12,6 @@ import { ResourceTypesService } from './services/resource-types.service';
 import { ResourcesController } from './controllers/resources.controller';
 import { WebsiteResourceTypeController } from './controllers/website-resource-type.controller';
 import { WebsiteResourceTypeService } from './services/website-resource-type.service';
-import { ResourceKeyword } from './models/entities/resource-keyword.entity';
-import { ResourceKeywordsService } from './services/resource-keywords.service';
 import { ConfigService } from '@nestjs/config';
 import { S3FileService } from '../aws/s3/services/s3-file.service';
 import { ResourceSearchService } from './services/resource-search.service';
@@ -30,7 +28,6 @@ import { Wonder } from '../wonders/models/entities/wonder.entity';
     ResourcesService,
     ResourceTypesService,
     WebsiteResourceTypeService,
-    ResourceKeywordsService,
     ConfigService,
     S3FileService,
     ResourceSearchService,
@@ -43,7 +40,6 @@ import { Wonder } from '../wonders/models/entities/wonder.entity';
       User,
       Visibility,
       ResourceType,
-      ResourceKeyword,
       Wonder,
     ]),
   ],

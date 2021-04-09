@@ -70,6 +70,11 @@ export class Resource1614003446448 implements MigrationInterface {
             isNullable: true,
           },
           {
+            name: 'keywords',
+            type: 'text',
+            isNullable: true,
+          },
+          {
             name: 'createdAt',
             type: 'TIMESTAMP',
             default: 'CURRENT_TIMESTAMP',

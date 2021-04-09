@@ -12,7 +12,6 @@ import {
 
 import { User } from '../../../users/models/entity/user.entity';
 import { ResourceType } from './resource-type.entity';
-import { ResourceKeyword } from './resource-keyword.entity';
 import { Wonder } from '../../../wonders/models/entities/wonder.entity';
 
 @Entity()
@@ -52,14 +51,11 @@ export class Resource {
   @JoinColumn()
   wonder: Wonder;
 
-  @OneToMany(
-    () => ResourceKeyword,
-    (resourceKeyword) => resourceKeyword.resource,
-  )
-  resourceKeywords: ResourceKeyword;
-
   @Column({ type: 'varchar', length: 200, nullable: true })
   urlImage: string;
+
+  @Column({ type: 'text', nullable: true })
+  keywords: string;
 
   @Column({ default: false })
   isSpecial: boolean;

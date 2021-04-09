@@ -13,14 +13,13 @@ import { UpdateResourceDto } from '../models/dto/update-resource.dto';
 import { Resource } from '../models/entities/resource.entity';
 import { Visibility } from '../../visibility/models/entity/visibility.entity';
 import { ResourceType } from '../models/entities/resource-type.entity';
-import { ResourceKeyword } from '../models/entities/resource-keyword.entity';
-import { ResourceKeywordsService } from './resource-keywords.service';
 import { ConfigService } from '@nestjs/config';
 import { ResourceGroupByResourceType } from '../interfaces/resource-group-by-resourceType';
 import { S3FileService } from '../../aws/s3/services/s3-file.service';
 import { Wonder } from '../../wonders/models/entities/wonder.entity';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { ResourceHelper } from '../helpers/resource-helper';
 
 @Injectable()
 export class ResourcesService {
@@ -34,12 +33,10 @@ export class ResourcesService {
     private visibilityRepository: Repository<Visibility>,
     @InjectRepository(ResourceType)
     private resourceTypeRepository: Repository<ResourceType>,
-    @InjectRepository(ResourceKeyword)
-    private resourceKeywordRepository: Repository<ResourceKeyword>,
-    private resourceKeywordsService: ResourceKeywordsService,
     private configService: ConfigService,
     private s3FileService: S3FileService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private resourceHelper: ResourceHelper,
   ) {}
 
   async create(
@@ -85,6 +82,9 @@ export class ResourcesService {
       );
     }
 
+    const keywords = createResourceDto.keywords;
+    const keywordsString = keywords.join();
+
     const resource = await this.resourceRepository.save({
       title: createResourceDto.title,
       description: createResourceDto.description,
@@ -96,13 +96,10 @@ export class ResourcesService {
       audioClipLink: s3AudioClip ? s3AudioClip.key : null,
       url: createResourceDto.url,
       urlImage: createResourceDto.urlImage,
+      keywords: keywordsString,
       isSpecial: createResourceDto.isSpecial === 'true',
     });
 
-    await this.resourceKeywordsService.create(
-      createResourceDto.keywords,
-      resource,
-    );
     return resource;
   }
 
@@ -147,7 +144,7 @@ export class ResourcesService {
       .getMany();
 
     const result = resources.map((item) => {
-      return this.prepareResourceAfterFetch(item);
+      return this.resourceHelper.prepareResourceAfterFetch(item);
     });
 
     return {
@@ -167,11 +164,11 @@ export class ResourcesService {
   async findOne(id: number, userId: string = null): Promise<Resource | any> {
     const user = await this.getUser(userId);
     const resource = await this.resourceRepository.findOne(id, {
-      relations: ['resourceType', 'visibility', 'user', 'resourceKeywords'],
+      relations: ['resourceType', 'visibility', 'user'],
       where: { ...(user && { user: user }) },
     });
     if (!resource) throw new NotFoundException();
-    return this.prepareResourceAfterFetch(resource);
+    return this.resourceHelper.prepareResourceAfterFetch(resource);
   }
 
   async update(
@@ -225,6 +222,9 @@ export class ResourcesService {
     if (updateResourceDto.audioClipLink)
       audioClipLink = updateResourceDto.audioClipLink;
 
+    const keywords = updateResourceDto.keywords;
+    const keywordsString = keywords.join();
+
     resource.title = updateResourceDto.title;
     resource.url = updateResourceDto.url;
     resource.user = user;
@@ -234,10 +234,8 @@ export class ResourcesService {
     resource.audioClipLink = s3AudioClip ? s3AudioClip.key : audioClipLink;
     resource.urlImage = updateResourceDto.urlImage;
     resource.isSpecial = updateResourceDto.isSpecial === 'true';
+    resource.keywords = keywordsString;
     const result = await this.resourceRepository.save(resource);
-
-    this.resourceKeywordsService.update(updateResourceDto.keywords, result);
-
     return result;
   }
 
@@ -307,16 +305,6 @@ export class ResourcesService {
       .orderBy('resource.id', 'DESC')
       .getOne();
 
-    return resource;
-  }
-
-  prepareResourceAfterFetch(resource: Resource) {
-    resource.imageLink = resource.imageLink
-      ? this.configService.get('AWS_CLOUDFRONT_DOMAIN') + resource.imageLink
-      : null;
-    resource.audioClipLink = resource.audioClipLink
-      ? this.configService.get('AWS_BUCKET_DOMAIN') + resource.audioClipLink
-      : null;
     return resource;
   }
 

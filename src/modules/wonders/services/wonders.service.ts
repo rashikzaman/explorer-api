@@ -41,12 +41,16 @@ export class WondersService {
   }
 
   async findAll(userId: string): Promise<Wonder[] | undefined> {
-    const user = await this.getUser(userId);
-    const wonders = await this.wonderRepository.find({
-      relations: ['user', 'visibility'],
-      where: { ...(user && { user: user }) },
-    });
+    let sqlQuery = this.wonderRepository
+      .createQueryBuilder('wonder')
+      .where('wonder.userId = :userId', { userId: userId });
 
+    sqlQuery = sqlQuery
+      .leftJoinAndSelect('wonder.visibility', 'visibility')
+      .leftJoinAndSelect('wonder.resources', 'resources')
+      .loadRelationCountAndMap('wonder.resourcesCount', 'wonder.resources');
+
+    const wonders = await sqlQuery.getMany();
     await Promise.all(
       wonders.map(async (wonder) => {
         wonder.coverPhotoUrl = await this.addCoverPhotoOfWonder(
@@ -55,7 +59,6 @@ export class WondersService {
         );
       }),
     );
-
     return wonders;
   }
 
@@ -64,13 +67,19 @@ export class WondersService {
     userId: string,
     withRelation = true,
   ): Promise<Wonder | undefined> {
-    const user = await this.getUser(userId);
-    const wonder = await this.wonderRepository.findOne(id, {
-      relations: withRelation ? ['user', 'visibility'] : [],
-      where: { ...(user && { user: user }) },
-    });
-    if (!wonder) throw new NotFoundException();
+    let sqlQuery = this.wonderRepository
+      .createQueryBuilder('wonder')
+      .where('wonder.userId = :userId', { userId: userId })
+      .where('wonder.id = :id', { id: id });
 
+    if (withRelation) {
+      sqlQuery = sqlQuery
+        .leftJoinAndSelect('wonder.visibility', 'visibility')
+        .leftJoinAndSelect('wonder.resources', 'resources')
+        .loadRelationCountAndMap('wonder.resourcesCount', 'wonder.resources');
+    }
+
+    const wonder = await sqlQuery.getOne();
     wonder.coverPhotoUrl = await this.addCoverPhotoOfWonder(wonder.id, +userId);
     return wonder;
   }

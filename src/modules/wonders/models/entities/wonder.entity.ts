@@ -1,3 +1,4 @@
+import { Resource } from 'src/modules/resources/models/entities/resource.entity';
 import {
   Entity,
   Column,
@@ -8,6 +9,7 @@ import {
   JoinColumn,
   Index,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 
 import { User } from '../../../users/models/entity/user.entity';
@@ -34,6 +36,10 @@ export class Wonder {
   @ManyToOne(() => Visibility)
   @JoinColumn()
   visibility: Visibility;
+
+  @OneToMany(() => Resource, (resource) => resource.wonder)
+  resources: Resource[];
+  resourcesCount: number;
 
   @Column({
     type: 'timestamp',

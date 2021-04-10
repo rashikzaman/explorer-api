@@ -47,8 +47,7 @@ export class Resource {
   @JoinColumn()
   resourceType: ResourceType;
 
-  @ManyToOne(() => Wonder)
-  @JoinColumn()
+  @ManyToOne(() => Wonder, (wonder) => wonder.resources)
   wonder: Wonder;
 
   @Column({ type: 'varchar', length: 200, nullable: true })

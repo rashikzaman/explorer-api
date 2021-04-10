@@ -162,7 +162,6 @@ describe('App Api', () => {
       .post('/wonders')
       .send({
         title: 'test wonder',
-        visibilityId: '3',
         description: 'This is a test wonder',
       })
       .set('Authorization', `Bearer ${jwtToken}`);

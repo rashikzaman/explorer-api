@@ -16,13 +16,6 @@ export class CreateWonderDto {
 
   @ApiProperty({
     type: Number,
-    description: 'Visibility id',
-    required: true,
-  })
-  visibilityId: number;
-
-  @ApiProperty({
-    type: Number,
     description: 'User id',
     required: true,
   })

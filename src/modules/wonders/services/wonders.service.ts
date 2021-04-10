@@ -9,7 +9,6 @@ import { CreateWonderDto } from '../models/dto/create-wonder.dto';
 import { UpdateWonderDto } from '../models/dto/update-wonder.dto';
 import { Wonder } from '../models/entities/wonder.entity';
 import { User } from '../../users/models/entity/user.entity';
-import { VisibilityService } from '../../visibility/services/visibility.service';
 import { ResourcesService } from '../../resources/services/resources.service';
 import { ResourceHelper } from '../../resources/helpers/resource-helper';
 
@@ -19,22 +18,17 @@ export class WondersService {
     @InjectRepository(Wonder)
     private wonderRepository: Repository<Wonder>,
     @InjectRepository(User) private userRepository: Repository<User>,
-    private visibilityService: VisibilityService,
     private resourceService: ResourcesService,
     private resourceHelper: ResourceHelper,
   ) {}
 
   async create(createWonderDto: CreateWonderDto): Promise<Wonder | undefined> {
     const user = await this.getUser(createWonderDto.userId);
-    const visibility = await this.visibilityService.getVisibility(
-      createWonderDto.visibilityId,
-    );
 
     const wonder = await this.wonderRepository.save({
       title: createWonderDto.title,
       description: createWonderDto.description,
       coverPhotoUrl: createWonderDto.coverPhoto,
-      visibility: visibility,
       user: user,
     });
     return wonder;
@@ -46,7 +40,6 @@ export class WondersService {
       .where('wonder.userId = :userId', { userId: userId });
 
     sqlQuery = sqlQuery
-      .leftJoinAndSelect('wonder.visibility', 'visibility')
       .leftJoinAndSelect('wonder.resources', 'resources')
       .loadRelationCountAndMap('wonder.resourcesCount', 'wonder.resources');
 
@@ -74,7 +67,6 @@ export class WondersService {
 
     if (withRelation) {
       sqlQuery = sqlQuery
-        .leftJoinAndSelect('wonder.visibility', 'visibility')
         .leftJoinAndSelect('wonder.resources', 'resources')
         .loadRelationCountAndMap('wonder.resourcesCount', 'wonder.resources');
     }
@@ -89,16 +81,10 @@ export class WondersService {
     updateWonderDto: UpdateWonderDto,
   ): Promise<Wonder | undefined> {
     const wonder = await this.findOne(id, updateWonderDto.userId.toString());
-    const visibility = await this.visibilityService.getVisibility(
-      updateWonderDto.visibilityId,
-    );
-
-    if (!visibility) throw new NotFoundException('Visiblity type not found');
 
     wonder.title = updateWonderDto.title;
     wonder.description = updateWonderDto.description;
     wonder.coverPhotoUrl = updateWonderDto.coverPhoto ?? wonder.coverPhotoUrl; // if request converphoto is null, don't insert it
-    wonder.visibility = visibility;
     wonder.updatedAt = new Date();
     const result = await this.wonderRepository.save(wonder);
     return result;

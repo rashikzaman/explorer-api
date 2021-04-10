@@ -34,10 +34,6 @@ export class Wonder1614016987238 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'visibilityId',
-            type: 'int',
-          },
-          {
             name: 'createdAt',
             type: 'TIMESTAMP',
             default: 'CURRENT_TIMESTAMP',

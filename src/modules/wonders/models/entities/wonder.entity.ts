@@ -1,4 +1,4 @@
-import { Resource } from 'src/modules/resources/models/entities/resource.entity';
+import { Resource } from '../../../resources/models/entities/resource.entity';
 import {
   Entity,
   Column,
@@ -32,10 +32,6 @@ export class Wonder {
 
   @Column({ type: 'varchar', length: '255' })
   coverPhotoUrl: string;
-
-  @ManyToOne(() => Visibility)
-  @JoinColumn()
-  visibility: Visibility;
 
   @OneToMany(() => Resource, (resource) => resource.wonder)
   resources: Resource[];

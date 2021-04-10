@@ -291,7 +291,7 @@ export class ResourcesService {
 
     resources.map((item) => {
       item.resourceType = resourceType;
-      return item;
+      return this.resourceHelper.prepareResourceAfterFetch(item);
     });
 
     return resources;

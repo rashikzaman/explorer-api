@@ -32,6 +32,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { S3FileService } from '../../aws/s3/services/s3-file.service';
+import { ApiQuery } from '@nestjs/swagger';
 
 @Controller('resources')
 export class ResourcesController {
@@ -74,6 +75,9 @@ export class ResourcesController {
 
   @Get()
   @UserAuthFindAll()
+  @ApiQuery({ name: 'pageSize' })
+  @ApiQuery({ name: 'pageNumber' })
+  @ApiQuery({ name: 'resourceTypeId' })
   findAll(
     @Request() req,
     @Query()

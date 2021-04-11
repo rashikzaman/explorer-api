@@ -11,6 +11,7 @@ import { Wonder } from '../models/entities/wonder.entity';
 import { User } from '../../users/models/entity/user.entity';
 import { ResourcesService } from '../../resources/services/resources.service';
 import { ResourceHelper } from '../../resources/helpers/resource-helper';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class WondersService {
@@ -20,6 +21,7 @@ export class WondersService {
     @InjectRepository(User) private userRepository: Repository<User>,
     private resourceService: ResourcesService,
     private resourceHelper: ResourceHelper,
+    private configService: ConfigService,
   ) {}
 
   async create(createWonderDto: CreateWonderDto): Promise<Wonder | undefined> {
@@ -34,7 +36,17 @@ export class WondersService {
     return wonder;
   }
 
-  async findAll(userId: string): Promise<Wonder[] | undefined> {
+  async findAll(
+    userId: string,
+    query: { pageSize: number; pageNumber: number },
+  ): Promise<Collection | undefined> {
+    const pageSize = query.pageSize
+      ? query.pageSize
+      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
+    const pageNumber = query.pageNumber ?? 1;
+
+    const skippedItems = (pageNumber - 1) * pageSize;
+
     let sqlQuery = this.wonderRepository
       .createQueryBuilder('wonder')
       .where('wonder.userId = :userId', { userId: userId });
@@ -43,7 +55,8 @@ export class WondersService {
       .leftJoinAndSelect('wonder.resources', 'resources')
       .loadRelationCountAndMap('wonder.resourcesCount', 'wonder.resources');
 
-    const wonders = await sqlQuery.getMany();
+    const totalCount = await sqlQuery.getCount();
+    const wonders = await sqlQuery.take(pageSize).skip(skippedItems).getMany();
     await Promise.all(
       wonders.map(async (wonder) => {
         wonder.coverPhotoUrl = await this.addCoverPhotoOfWonder(
@@ -52,7 +65,14 @@ export class WondersService {
         );
       }),
     );
-    return wonders;
+
+    return {
+      items: wonders,
+      pageNumber:
+        typeof pageNumber === 'string' ? parseInt(pageNumber) : pageNumber,
+      pageSize: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
+      totalCount: totalCount,
+    };
   }
 
   async findOne(

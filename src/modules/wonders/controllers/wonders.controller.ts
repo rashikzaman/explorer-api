@@ -10,6 +10,7 @@ import {
   UsePipes,
   Request,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { WondersService } from '../services/wonders.service';
 import { CreateWonderDto } from '../models/dto/create-wonder.dto';
@@ -27,6 +28,9 @@ import {
   UserAuthDelete,
   UserAuthUpdate,
 } from '../../core/decorators/auth.decorator';
+import { ApiQuery } from '@nestjs/swagger';
+import { type } from 'os';
+import { number } from 'joi';
 
 @Controller('wonders')
 export class WondersController {
@@ -48,9 +52,15 @@ export class WondersController {
   }
 
   @Get()
+  @ApiQuery({ name: 'pageSize' })
+  @ApiQuery({ name: 'pageNumber' })
   @UserAuthFindAll()
-  findAll(@Request() req) {
-    return this.wondersService.findAll(req.user.userId);
+  findAll(
+    @Request() req,
+    @Query()
+    query: { pageSize: number; pageNumber: number },
+  ) {
+    return this.wondersService.findAll(req.user.userId, query);
   }
 
   @Get(':id')

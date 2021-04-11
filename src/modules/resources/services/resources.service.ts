@@ -83,7 +83,7 @@ export class ResourcesService {
     }
 
     const keywords = createResourceDto.keywords;
-    const keywordsString = keywords.join();
+    const keywordsString = keywords ? keywords.join() : '';
 
     const resource = await this.resourceRepository.save({
       title: createResourceDto.title,
@@ -223,7 +223,7 @@ export class ResourcesService {
       audioClipLink = updateResourceDto.audioClipLink;
 
     const keywords = updateResourceDto.keywords;
-    const keywordsString = keywords.join();
+    const keywordsString = keywords ? keywords.join() : '';
 
     resource.title = updateResourceDto.title;
     resource.url = updateResourceDto.url;

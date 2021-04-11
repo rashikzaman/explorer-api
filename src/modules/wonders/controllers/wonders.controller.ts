@@ -10,6 +10,7 @@ import {
   UsePipes,
   Request,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { WondersService } from '../services/wonders.service';
 import { CreateWonderDto } from '../models/dto/create-wonder.dto';
@@ -49,8 +50,12 @@ export class WondersController {
 
   @Get()
   @UserAuthFindAll()
-  findAll(@Request() req) {
-    return this.wondersService.findAll(req.user.userId);
+  findAll(
+    @Request() req,
+    @Query()
+    query: { pageSize: number; pageNumber: number; resourceTypeId: number },
+  ) {
+    return this.wondersService.findAll(req.user.userId, query);
   }
 
   @Get(':id')

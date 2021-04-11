@@ -28,6 +28,9 @@ import {
   UserAuthDelete,
   UserAuthUpdate,
 } from '../../core/decorators/auth.decorator';
+import { ApiQuery } from '@nestjs/swagger';
+import { type } from 'os';
+import { number } from 'joi';
 
 @Controller('wonders')
 export class WondersController {
@@ -49,11 +52,13 @@ export class WondersController {
   }
 
   @Get()
+  @ApiQuery({ name: 'pageSize' })
+  @ApiQuery({ name: 'pageNumber' })
   @UserAuthFindAll()
   findAll(
     @Request() req,
     @Query()
-    query: { pageSize: number; pageNumber: number; resourceTypeId: number },
+    query: { pageSize: number; pageNumber: number },
   ) {
     return this.wondersService.findAll(req.user.userId, query);
   }

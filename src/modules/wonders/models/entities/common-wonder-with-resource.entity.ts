@@ -10,7 +10,7 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
-import { Resource } from 'src/modules/resources/models/entities/resource.entity';
+import { Resource } from '../../../resources/models/entities/resource.entity';
 
 @Entity()
 export class CommonWonderWithResource {

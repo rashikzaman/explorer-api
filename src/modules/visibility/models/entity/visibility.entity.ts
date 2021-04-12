@@ -1,20 +1,22 @@
 import { Exclude } from 'class-transformer';
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  Unique,
-  BeforeInsert,
-  OneToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+
+export enum VisibilityEnum {
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+  INVITE_ONLY = 'invite-only',
+}
 
 @Entity()
 export class Visibility {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: false, unique: true })
+  @Column({
+    type: 'enum',
+    enum: VisibilityEnum,
+    nullable: false,
+  })
   type: string;
 
   @Column({

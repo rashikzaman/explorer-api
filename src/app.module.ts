@@ -23,6 +23,7 @@ import {
   utilities as nestWinstonModuleUtilities,
   WinstonModule,
 } from 'nest-winston';
+import { DiscoverModule } from './modules/discover/discover.module';
 import * as winston from 'winston';
 
 @Module({
@@ -74,6 +75,7 @@ import * as winston from 'winston';
     MetadataModule,
     AwsModule,
     SearchModule,
+    DiscoverModule,
     CoreModule, //this module has to be the last module
   ],
   controllers: [AppController],

@@ -7,15 +7,28 @@ import { User } from '../users/models/entity/user.entity';
 import { VisibilityService } from '../visibility/services/visibility.service';
 import { Visibility } from '../visibility/models/entity/visibility.entity';
 import { WonderSearchService } from './services/wonder-search.service';
-import { WonderHelper } from './helpers/wonder-helper';
 import { ResourcesModule } from '../resources/resources.module';
+import { CommonWonderResourceService } from './services/common-wonder-resource.service';
+import { CommonWonderWithResource } from './models/entities/common-wonder-with-resource.entity';
+import { VisibilityModule } from '../visibility/visibility.module';
 
 @Module({
   controllers: [WondersController],
-  providers: [WondersService, VisibilityService, WonderSearchService],
+  providers: [
+    WondersService,
+    VisibilityService,
+    WonderSearchService,
+    CommonWonderResourceService,
+  ],
   imports: [
-    TypeOrmModule.forFeature([Wonder, User, Visibility]),
+    TypeOrmModule.forFeature([
+      Wonder,
+      User,
+      Visibility,
+      CommonWonderWithResource,
+    ]),
     ResourcesModule,
+    VisibilityModule,
   ],
   exports: [WondersService, WonderSearchService],
 })

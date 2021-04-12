@@ -11,7 +11,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ResourcesModule } from './modules/resources/resources.module';
 import { WondersModule } from './modules/wonders/wonders.module';
 import { VisibilityModule } from './modules/visibility/visibility.module';
-import { WonderResourceModule } from './modules/wonder-resource/wonder-resource.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -71,7 +70,6 @@ import * as winston from 'winston';
     ResourcesModule,
     WondersModule,
     VisibilityModule,
-    WonderResourceModule,
     MetadataModule,
     AwsModule,
     SearchModule,

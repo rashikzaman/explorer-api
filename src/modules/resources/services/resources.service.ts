@@ -20,6 +20,7 @@ import { Wonder } from '../../wonders/models/entities/wonder.entity';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { ResourceHelper } from '../helpers/resource-helper';
+import Collection from '../../core/interfaces/collection/collection.interface';
 
 @Injectable()
 export class ResourcesService {
@@ -161,10 +162,14 @@ export class ResourcesService {
    * @param string id
    * @param user userId
    */
-  async findOne(id: number, userId: string = null): Promise<Resource | any> {
+  async findOne(
+    id: number,
+    userId: string = null,
+    withRelation = true,
+  ): Promise<Resource | any> {
     const user = await this.getUser(userId);
     const resource = await this.resourceRepository.findOne(id, {
-      relations: ['resourceType', 'visibility', 'user'],
+      relations: withRelation ? ['resourceType', 'visibility', 'user'] : [],
       where: { ...(user && { user: user }) },
     });
     if (!resource) throw new NotFoundException();

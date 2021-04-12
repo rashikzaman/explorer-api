@@ -12,6 +12,7 @@ import { User } from '../../users/models/entity/user.entity';
 import { ResourcesService } from '../../resources/services/resources.service';
 import { ResourceHelper } from '../../resources/helpers/resource-helper';
 import { ConfigService } from '@nestjs/config';
+import Collection from '../../core/interfaces/collection/collection.interface';
 
 @Injectable()
 export class WondersService {
@@ -133,7 +134,7 @@ export class WondersService {
 
   async getUser(userId): Promise<User | null> {
     if (!userId) return null;
-    const user = this.userRepository.findOne(userId);
+    const user = await this.userRepository.findOne(userId);
     return user;
   }
 }

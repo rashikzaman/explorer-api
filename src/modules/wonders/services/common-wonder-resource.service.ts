@@ -47,14 +47,14 @@ export class CommonWonderResourceService {
   }
 
   async getAllWonders() {
-    const publicVisibilityId = await this.visibilityService.getPublicVisibilityId();
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
     let commonWonderWithResources = {};
 
     const wonders = await this.wonderRepository
       .createQueryBuilder('wonder')
       .leftJoinAndSelect('wonder.resources', 'resources')
       .where('resources.visibilityId = :visibilityId', {
-        visibilityId: publicVisibilityId,
+        visibilityId: publicVisibility.id,
       })
       .getMany();
 

@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { UsersService } from '../users/services/users.service';
 
 @Injectable()
 export class DiscoverService {
-  findWonderers() {
-    return `This action returns all wonderers`;
+  constructor(private usersService: UsersService){}
+
+  async findWonderers() {
+    const users = await this.usersService.getPublicUsers();
+    return users;
   }
 }

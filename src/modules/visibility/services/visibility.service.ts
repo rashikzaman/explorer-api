@@ -20,28 +20,28 @@ export class VisibilityService {
     return visibility;
   }
 
-  async getPublicVisibilityId(): Promise<number> {
+  async getPublicVisibility(): Promise<Visibility> {
     const visibility = await this.visibilityRepository.findOne({
       type: VisibilityEnum.PUBLIC,
     });
     if (!visibility) throw new Error('Public Visiblity not found in database');
-    return visibility.id;
+    return visibility;
   }
 
-  async getPrivateVisibilityId(): Promise<number> {
+  async getPrivateVisibility(): Promise<Visibility> {
     const visibility = await this.visibilityRepository.findOne({
       type: VisibilityEnum.PUBLIC,
     });
     if (!visibility) throw new Error('Private Visiblity not found in database');
-    return visibility.id;
+    return visibility;
   }
 
-  async getInviteOnlyVisibilityId(): Promise<number> {
+  async getInviteOnlyVisibility(): Promise<Visibility> {
     const visibility = await this.visibilityRepository.findOne({
       type: VisibilityEnum.PUBLIC,
     });
     if (!visibility)
       throw new Error('Invite-only Visiblity not found in database');
-    return visibility.id;
+    return visibility;
   }
 }

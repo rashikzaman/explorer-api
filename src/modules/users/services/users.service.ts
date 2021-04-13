@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,11 +16,26 @@ export class UsersService {
     private userAttributeRepository: Repository<UserAttribute>,
     private configService: ConfigService,
     private visibilityService: VisibilityService,
+    @Inject(forwardRef(() => UsersAuthService)) //to resolve circular dependancy
     private userAuthService: UsersAuthService,
   ) {}
 
   async findOne(id: string): Promise<User | undefined> {
     return this.usersRepository.findOne(id, { relations: ['userAttribute'] });
+  }
+
+  async create(email: string, username: string, hashedPassword: string) {
+    const result = await this.usersRepository.save({
+      email: email,
+      username: username,
+      password: hashedPassword,
+    });
+    const publicVisibility = await this.visibilityService.getPublicVisibility(); //by default, making user profile public
+    const attribute = new UserAttribute();
+    attribute.user = result;
+    attribute.visibility = publicVisibility;
+    await this.userAttributeRepository.save(attribute);
+    return result;
   }
 
   async update(
@@ -61,5 +76,17 @@ export class UsersService {
     return await this.usersRepository.findOne(id, {
       relations: ['userAttribute'],
     });
+  }
+
+  async getPublicUsers(): Promise<Array<User> | undefined> {
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
+    const users = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.userAttribute', 'userAttribute')
+      .where('userAttribute.visibilityId = :visibilityId', {
+        visibilityId: publicVisibility.id,
+      })
+      .getMany();
+    return users;
   }
 }

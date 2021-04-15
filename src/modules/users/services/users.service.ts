@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,11 +16,26 @@ export class UsersService {
     private userAttributeRepository: Repository<UserAttribute>,
     private configService: ConfigService,
     private visibilityService: VisibilityService,
+    @Inject(forwardRef(() => UsersAuthService)) //to resolve circular dependancy
     private userAuthService: UsersAuthService,
   ) {}
 
   async findOne(id: string): Promise<User | undefined> {
     return this.usersRepository.findOne(id, { relations: ['userAttribute'] });
+  }
+
+  async create(email: string, username: string, hashedPassword: string) {
+    const publicVisibility = await this.visibilityService.getPublicVisibility(); //by default, making user profile public
+    const result = await this.usersRepository.save({
+      email: email,
+      username: username,
+      password: hashedPassword,
+      visibility: publicVisibility,
+    });
+    const attribute = new UserAttribute();
+    attribute.user = result;
+    await this.userAttributeRepository.save(attribute);
+    return result;
   }
 
   async update(
@@ -44,22 +59,33 @@ export class UsersService {
     user.name = profileUpdateDto.name;
     user.email = profileUpdateDto.email;
     user.username = profileUpdateDto.username;
+    const visibility = await this.visibilityService.getVisibility(
+      profileUpdateDto.visibilityId,
+    );
+    user.visibility = visibility;
     const userResult = await this.usersRepository.save(user);
     let attribute = await this.userAttributeRepository.findOne({
       user: user,
     });
     if (!attribute) attribute = new UserAttribute();
-    const visibility = await this.visibilityService.getVisibility(
-      profileUpdateDto.visibilityId,
-    );
-
     attribute.user = userResult;
-    attribute.visibility = visibility;
     attribute.instagramUserName = profileUpdateDto.instagramUserName;
     attribute.twitterUserName = profileUpdateDto.twitterUserName;
-    const attributeResult = await this.userAttributeRepository.save(attribute);
+    await this.userAttributeRepository.save(attribute);
     return await this.usersRepository.findOne(id, {
       relations: ['userAttribute'],
     });
+  }
+
+  async getPublicUsers(): Promise<Array<User> | undefined> {
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
+    const users = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userAttribute', 'userAttribute')
+      .where('user.visibilityId = :visibilityId', {
+        visibilityId: publicVisibility.id,
+      })
+      .getMany();
+    return users;
   }
 }

@@ -1,4 +1,5 @@
 import { Exclude } from 'class-transformer';
+import { Visibility } from '../../../visibility/models/entity/visibility.entity';
 import {
   Entity,
   Column,
@@ -7,8 +8,10 @@ import {
   BeforeInsert,
   OneToOne,
   JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 import { UserAttribute } from './user-attribute.entity';
+import { Field } from 'mysql2';
 
 @Entity()
 export class User {
@@ -27,6 +30,12 @@ export class User {
   @Column({ select: false })
   @Exclude()
   password: string;
+
+  @ManyToOne(() => Visibility)
+  visibility: Visibility;
+
+  @Column()
+  visibilityId: string;
 
   @OneToOne(() => UserAttribute, (userAttribute) => userAttribute.user)
   userAttribute: UserAttribute;

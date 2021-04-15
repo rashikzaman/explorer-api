@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { use } from 'passport';
@@ -6,12 +12,15 @@ import { RegisterDto } from 'src/modules/auth/models/dto/register.dto';
 import { Repository } from 'typeorm';
 import { User } from '../models/entity/user.entity';
 import * as bcrypt from 'bcrypt';
+import { UsersService } from './users.service';
 
 @Injectable()
 export class UsersAuthService {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
     private configService: ConfigService,
+    @Inject(forwardRef(() => UsersService)) //to resolve circular dependancy
+    private usersService: UsersService,
   ) {}
 
   async findOneByEmail(email: string): Promise<User | undefined> {
@@ -23,11 +32,11 @@ export class UsersAuthService {
 
   async registerUser(user: User): Promise<User | undefined> {
     const hashedPassword = await this.hashPassword(user.password);
-    const result = await this.usersRepository.save({
-      email: user.email,
-      username: user.username,
-      password: hashedPassword,
-    });
+    const result = await this.usersService.create(
+      user.email,
+      user.username,
+      hashedPassword,
+    );
     return result;
   }
 

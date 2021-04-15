@@ -43,6 +43,9 @@ export class Resource {
   @JoinColumn()
   visibility: Visibility;
 
+  @Column()
+  visibilityId: number;
+
   @ManyToOne(() => ResourceType)
   @JoinColumn()
   resourceType: ResourceType;

@@ -224,6 +224,13 @@ describe('App Api', () => {
     expect(result.status).toBe(200);
   });
 
+  it(`Discover wonderers: if discover wonderers with auth token, it should return 200`, async () => {
+    const result = await request(app.getHttpServer())
+      .get(`/discover/resources`)
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(200);
+  });
+
   /** Discover Ends */
 
   afterAll(async () => {

@@ -21,6 +21,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { ResourceHelper } from '../helpers/resource-helper';
 import Collection from '../../core/interfaces/collection/collection.interface';
+import { VisibilityService } from '../../visibility/services/visibility.service';
 
 @Injectable()
 export class ResourcesService {
@@ -38,6 +39,7 @@ export class ResourcesService {
     private s3FileService: S3FileService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private resourceHelper: ResourceHelper,
+    private readonly visibilityService: VisibilityService,
   ) {}
 
   async create(
@@ -311,6 +313,25 @@ export class ResourcesService {
       .getOne();
 
     return resource;
+  }
+
+  async getPublicAndInvitedOnlyResources(userId: number) {
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
+
+    const sqlQuery = await this.resourceRepository
+      .createQueryBuilder('resource')
+      .leftJoinAndSelect('resource.resourceType', 'resoureceType')
+      .leftJoinAndSelect('resource.visibility', 'visibility')
+      .leftJoinAndSelect('resource.wonder', 'wonder')
+      .where('resource.visibilityId = :visibilityId', {
+        visibilityId: publicVisibility.id,
+      });
+
+    const resources = await sqlQuery.getMany();
+    const result = resources.map((item) => {
+      return this.resourceHelper.prepareResourceAfterFetch(item);
+    });
+    return result;
   }
 
   async getUser(userId): Promise<User | null> {

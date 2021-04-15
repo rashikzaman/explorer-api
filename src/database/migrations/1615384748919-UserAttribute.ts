@@ -18,10 +18,6 @@ export class UserAttribute1615384748919 implements MigrationInterface {
             type: 'int',
           },
           {
-            name: 'visibilityId',
-            type: 'int',
-          },
-          {
             name: 'twitterUserName',
             type: 'varchar',
             length: '255',
@@ -57,12 +53,6 @@ export class UserAttribute1615384748919 implements MigrationInterface {
             columnNames: ['userId'],
             referencedColumnNames: ['id'],
             referencedTableName: 'user',
-          },
-          {
-            name: 'visibilityId',
-            columnNames: ['visibilityId'],
-            referencedColumnNames: ['id'],
-            referencedTableName: 'visibility',
           },
         ],
       }),

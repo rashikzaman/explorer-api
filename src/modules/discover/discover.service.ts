@@ -5,7 +5,7 @@ import { UsersService } from '../users/services/users.service';
 export class DiscoverService {
   constructor(private usersService: UsersService){}
 
-  async findWonderers() {
+  async findWonderers(userId: number) {
     const users = await this.usersService.getPublicUsers();
     return users;
   }

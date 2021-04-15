@@ -38,6 +38,10 @@ export class User1615384748729 implements MigrationInterface {
               length: '255',
             },
             {
+              name: 'visibilityId',
+              type: 'int',
+            },
+            {
               name: 'createdAt',
               type: 'TIMESTAMP',
               default: 'CURRENT_TIMESTAMP',
@@ -51,10 +55,9 @@ export class User1615384748729 implements MigrationInterface {
           ],
           foreignKeys: [
             {
-              name: 'resourceTypeId',
-              columnNames: ['resourceTypeId'],
+              columnNames: ['visibilityId'],
               referencedColumnNames: ['id'],
-              referencedTableName: 'resource_type',
+              referencedTableName: 'visibility',
             },
           ],
         }),

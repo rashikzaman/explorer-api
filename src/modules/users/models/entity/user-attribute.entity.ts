@@ -28,9 +28,6 @@ export class UserAttribute {
   @ManyToOne(() => User)
   user: User;
 
-  @ManyToOne(() => Visibility)
-  visibility: Visibility;
-
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',

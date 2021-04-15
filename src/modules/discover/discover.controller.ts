@@ -1,5 +1,6 @@
 import { Controller, Get, Request } from '@nestjs/common';
 import { UserAuthFind } from '../core/decorators/auth.decorator';
+import { ResourcesService } from '../resources/services/resources.service';
 import { DiscoverService } from './discover.service';
 
 @Controller('discover')
@@ -8,7 +9,13 @@ export class DiscoverController {
 
   @Get('wonderers')
   @UserAuthFind()
-  findWonder(@Request() req) {
-    return this.discoverService.findWonderers(req.user.userId);
+  async findWonders(@Request() req) {
+    return await this.discoverService.findWonderers(req.user.userId);
+  }
+
+  @Get('resources')
+  @UserAuthFind()
+  async findResources(@Request() req) {
+    return await this.discoverService.findResources(req.user.userId);
   }
 }

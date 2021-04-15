@@ -17,6 +17,7 @@ import { S3FileService } from '../aws/s3/services/s3-file.service';
 import { ResourceSearchService } from './services/resource-search.service';
 import { ResourceHelper } from './helpers/resource-helper';
 import { Wonder } from '../wonders/models/entities/wonder.entity';
+import { VisibilityModule } from '../visibility/visibility.module';
 
 @Module({
   controllers: [
@@ -42,6 +43,7 @@ import { Wonder } from '../wonders/models/entities/wonder.entity';
       ResourceType,
       Wonder,
     ]),
+    VisibilityModule,
   ],
   exports: [ResourcesService, ResourceSearchService, ResourceHelper],
 })

@@ -7,6 +7,7 @@ export class ResourceHelper {
   constructor(private configService: ConfigService) {}
 
   prepareResourceAfterFetch(resource: Resource) {
+    if (!resource) return resource;
     resource.imageLink = this.appendDomainToImageLink(resource);
     resource.audioClipLink = this.appendDomainToAudionLink(resource);
     return resource;

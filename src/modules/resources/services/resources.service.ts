@@ -316,12 +316,12 @@ export class ResourcesService {
     let sqlQuery = this.resourceRepository
       .createQueryBuilder('resource')
       .where('resource.userId = :userId', { userId: userId })
-      .where('resource.resourceTypeId = :resourceTypeId', {
+      .andWhere('resource.resourceTypeId = :resourceTypeId', {
         resourceTypeId: resourceType.id,
       });
 
     if (wonderId)
-      sqlQuery = sqlQuery.where('resource.wonderId = :wonderId', {
+      sqlQuery = sqlQuery.andWhere('resource.wonderId = :wonderId', {
         wonderId: wonderId,
       });
 

@@ -113,6 +113,7 @@ export class ResourcesService {
       pageSize: number;
       pageNumber: number;
       resourceTypeId: number;
+      wonderId: number;
     },
   ): Promise<Collection | undefined> {
     const user = await this.getUser(userId);
@@ -138,6 +139,12 @@ export class ResourcesService {
       sqlQuery = sqlQuery.where('resource.resourceTypeId = :resourceTypeId', {
         resourceTypeId: query.resourceTypeId,
       });
+
+    if (query.wonderId) {
+      sqlQuery = sqlQuery.where('resource.wonderId = :wonderId', {
+        wonderId: query.wonderId,
+      });
+    }
 
     const resources = await sqlQuery
       .take(pageSize)

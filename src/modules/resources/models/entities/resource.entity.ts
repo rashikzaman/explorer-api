@@ -50,6 +50,9 @@ export class Resource {
   @JoinColumn()
   resourceType: ResourceType;
 
+  @Column()
+  wonderId: number;
+
   @ManyToOne(() => Wonder, (wonder) => wonder.resources)
   wonder: Wonder;
 

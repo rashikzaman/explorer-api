@@ -13,6 +13,7 @@ import { ResourcesService } from '../../resources/services/resources.service';
 import { ResourceHelper } from '../../resources/helpers/resource-helper';
 import { ConfigService } from '@nestjs/config';
 import Collection from '../../core/interfaces/collection/collection.interface';
+import { VisibilityService } from '../../visibility/services/visibility.service';
 
 @Injectable()
 export class WondersService {
@@ -23,16 +24,19 @@ export class WondersService {
     private resourceService: ResourcesService,
     private resourceHelper: ResourceHelper,
     private configService: ConfigService,
+    private visibilityService: VisibilityService,
   ) {}
 
   async create(createWonderDto: CreateWonderDto): Promise<Wonder | undefined> {
     const user = await this.getUser(createWonderDto.userId);
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
 
     const wonder = await this.wonderRepository.save({
       title: createWonderDto.title,
       description: createWonderDto.description,
       coverPhotoUrl: createWonderDto.coverPhoto,
       user: user,
+      visibility: publicVisibility,
     });
     return wonder;
   }
@@ -102,11 +106,13 @@ export class WondersService {
     updateWonderDto: UpdateWonderDto,
   ): Promise<Wonder | undefined> {
     const wonder = await this.findOne(id, updateWonderDto.userId.toString());
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
 
     wonder.title = updateWonderDto.title;
     wonder.description = updateWonderDto.description;
     wonder.coverPhotoUrl = updateWonderDto.coverPhoto ?? wonder.coverPhotoUrl; // if request converphoto is null, don't insert it
     wonder.updatedAt = new Date();
+    wonder.visibility = publicVisibility;
     const result = await this.wonderRepository.save(wonder);
     return result;
   }

@@ -30,6 +30,13 @@ export class Wonder {
   @JoinColumn({ name: 'userId' })
   user: User;
 
+  @ManyToOne(() => Visibility)
+  @JoinColumn()
+  visibility: Visibility;
+
+  @Column()
+  visibilityId: number;
+
   @Column({ type: 'varchar', length: '255' })
   coverPhotoUrl: string;
 

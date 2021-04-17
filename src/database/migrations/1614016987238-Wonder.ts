@@ -28,6 +28,10 @@ export class Wonder1614016987238 implements MigrationInterface {
             type: 'int',
           },
           {
+            name: 'visibilityId',
+            type: 'int',
+          },
+          {
             name: 'coverPhotoUrl',
             type: 'varchar',
             length: '255',
@@ -47,7 +51,7 @@ export class Wonder1614016987238 implements MigrationInterface {
         ],
         foreignKeys: [
           {
-            name: 'wonder',
+            name: 'userId',
             columnNames: ['userId'],
             referencedColumnNames: ['id'],
             referencedTableName: 'user',

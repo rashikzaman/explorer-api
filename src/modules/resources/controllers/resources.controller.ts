@@ -78,7 +78,7 @@ export class ResourcesController {
   @ApiQuery({ name: 'pageSize' })
   @ApiQuery({ name: 'pageNumber' })
   @ApiQuery({ name: 'resourceTypeId' })
-  @ApiQuery({ name: 'wonderId'})
+  @ApiQuery({ name: 'wonderId' })
   findAll(
     @Request() req,
     @Query()
@@ -114,8 +114,8 @@ export class ResourcesController {
     return this.resourcesService.update(+id, updateResourceDto);
   }
 
-  @UserAuthDelete()
   @Delete(':id')
+  @UserAuthDelete()
   async remove(@Param('id') id: string, @Request() req: any) {
     const result = await this.resourcesService.remove(+id, req.user.userId);
     if (result) return { message: 'Resource deleted', status: 'success' };
@@ -123,8 +123,15 @@ export class ResourcesController {
   }
 
   @Get('group/resource-types')
+  @ApiQuery({ name: 'wonderId' })
   @UserAuthFind()
-  async groupResourcesByResourceTypes(@Request() req: any) {
-    return this.resourcesService.groupResourcesByResourceType(req.user.userId);
+  async groupResourcesByResourceTypes(
+    @Request() req: any,
+    @Query() query: { wonderId: number },
+  ) {
+    return this.resourcesService.groupResourcesByResourceType(
+      req.user.userId,
+      query,
+    );
   }
 }

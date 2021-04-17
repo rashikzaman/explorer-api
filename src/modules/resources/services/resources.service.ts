@@ -272,17 +272,32 @@ export class ResourcesService {
 
   async groupResourcesByResourceType(
     userId: string,
+    query: { wonderId: number },
   ): Promise<Array<ResourceGroupByResourceType>> {
     const resourceTypes = await this.resourceTypeRepository.find({});
     const resourceGroupData = [];
-    const user = await this.getUser(userId);
+    if (query.wonderId) {
+      const wonder = await this.wonderRepository.findOne(query.wonderId);
+      if (!wonder) throw new NotFoundException('Wonder not found');
+    }
 
     await Promise.all(
       resourceTypes.map(async (item) => {
+        const {
+          resources,
+          resourcesCount,
+        } = await this.getResourcesByResourceType(
+          item,
+          +userId,
+          3,
+          query.wonderId,
+        );
+
         const data: ResourceGroupByResourceType = {
           id: item.id,
           type: item.type,
-          resources: await this.getResourcesByResourceType(item, user, 3),
+          resources: resources,
+          resourcesCount: resourcesCount,
         };
         resourceGroupData.push(data);
         return item;
@@ -294,21 +309,38 @@ export class ResourcesService {
 
   async getResourcesByResourceType(
     resourceType: ResourceType,
-    user: User,
+    userId: number,
     limit = 3,
+    wonderId = null,
   ) {
-    const resources = await this.resourceRepository.find({
-      where: { resourceType: resourceType, user: user },
-      order: { id: 'DESC' },
-      take: limit,
-    });
+    let sqlQuery = this.resourceRepository
+      .createQueryBuilder('resource')
+      .where('resource.userId = :userId', { userId: userId })
+      .where('resource.resourceTypeId = :resourceTypeId', {
+        resourceTypeId: resourceType.id,
+      });
+
+    if (wonderId)
+      sqlQuery = sqlQuery.where('resource.wonderId = :wonderId', {
+        wonderId: wonderId,
+      });
+
+    const count = await sqlQuery.getCount();
+
+    const resources = await sqlQuery
+      .orderBy({ id: 'DESC' })
+      .take(limit)
+      .getMany();
 
     resources.map((item) => {
       item.resourceType = resourceType;
       return this.resourceHelper.prepareResourceAfterFetch(item);
     });
 
-    return resources;
+    return {
+      resources: resources,
+      resourcesCount: count,
+    };
   }
 
   async getUserLatestResourceByWonderId(userId: number, wonderId: number) {

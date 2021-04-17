@@ -78,10 +78,16 @@ export class ResourcesController {
   @ApiQuery({ name: 'pageSize' })
   @ApiQuery({ name: 'pageNumber' })
   @ApiQuery({ name: 'resourceTypeId' })
+  @ApiQuery({ name: 'wonderId'})
   findAll(
     @Request() req,
     @Query()
-    query: { pageSize: number; pageNumber: number; resourceTypeId: number },
+    query: {
+      pageSize: number;
+      pageNumber: number;
+      resourceTypeId: number;
+      wonderId: number;
+    },
   ) {
     return this.resourcesService.findAll(req.user.userId, query);
   }

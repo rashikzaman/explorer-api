@@ -138,12 +138,15 @@ export class ResourcesService {
       .where('resource.userId = :userId', { userId: userId });
 
     if (query.resourceTypeId)
-      sqlQuery = sqlQuery.where('resource.resourceTypeId = :resourceTypeId', {
-        resourceTypeId: query.resourceTypeId,
-      });
+      sqlQuery = sqlQuery.andWhere(
+        'resource.resourceTypeId = :resourceTypeId',
+        {
+          resourceTypeId: query.resourceTypeId,
+        },
+      );
 
     if (query.wonderId) {
-      sqlQuery = sqlQuery.where('resource.wonderId = :wonderId', {
+      sqlQuery = sqlQuery.andWhere('resource.wonderId = :wonderId', {
         wonderId: query.wonderId,
       });
     }

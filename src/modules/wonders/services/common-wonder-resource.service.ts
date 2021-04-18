@@ -53,7 +53,10 @@ export class CommonWonderResourceService {
     const wonders = await this.wonderRepository
       .createQueryBuilder('wonder')
       .leftJoinAndSelect('wonder.resources', 'resources')
-      .where('resources.visibilityId = :visibilityId', {
+      .where('wonder.visibilityId = :visibilityId', {
+        visibilityId: publicVisibility.id,
+      })
+      .andWhere('resources.visibilityId = :visibilityId', {
         visibilityId: publicVisibility.id,
       })
       .getMany();

@@ -11,6 +11,7 @@ import { ResourcesModule } from '../resources/resources.module';
 import { CommonWonderResourceService } from './services/common-wonder-resource.service';
 import { CommonWonderWithResource } from './models/entities/common-wonder-with-resource.entity';
 import { VisibilityModule } from '../visibility/visibility.module';
+import { Resource } from '../resources/models/entities/resource.entity';
 
 @Module({
   controllers: [WondersController],
@@ -26,10 +27,11 @@ import { VisibilityModule } from '../visibility/visibility.module';
       User,
       Visibility,
       CommonWonderWithResource,
+      Resource
     ]),
     ResourcesModule,
     VisibilityModule,
   ],
-  exports: [WondersService, WonderSearchService],
+  exports: [WondersService, WonderSearchService, CommonWonderResourceService],
 })
 export class WondersModule {}

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../users/models/entity/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
 import { UpdateResourceDto } from '../models/dto/update-resource.dto';
 import { Resource } from '../models/entities/resource.entity';
@@ -138,12 +138,15 @@ export class ResourcesService {
       .where('resource.userId = :userId', { userId: userId });
 
     if (query.resourceTypeId)
-      sqlQuery = sqlQuery.where('resource.resourceTypeId = :resourceTypeId', {
-        resourceTypeId: query.resourceTypeId,
-      });
+      sqlQuery = sqlQuery.andWhere(
+        'resource.resourceTypeId = :resourceTypeId',
+        {
+          resourceTypeId: query.resourceTypeId,
+        },
+      );
 
     if (query.wonderId) {
-      sqlQuery = sqlQuery.where('resource.wonderId = :wonderId', {
+      sqlQuery = sqlQuery.andWhere('resource.wonderId = :wonderId', {
         wonderId: query.wonderId,
       });
     }
@@ -343,7 +346,10 @@ export class ResourcesService {
     };
   }
 
-  async getUserLatestResourceByWonderId(userId: number, wonderId: number) {
+  async getUserLatestResourceByWonderId(
+    userId: number,
+    wonderId: number,
+  ): Promise<Resource> {
     const resource = await this.resourceRepository
       .createQueryBuilder('resource')
       .where('resource.userId = :userId', { userId: userId })
@@ -354,7 +360,7 @@ export class ResourcesService {
     return resource;
   }
 
-  async getPublicAndInvitedOnlyResources(userId: number) {
+  async getPublicAndInvitedOnlyResources(userId: number): Promise<Array<Resource>> {
     const publicVisibility = await this.visibilityService.getPublicVisibility();
 
     const sqlQuery = await this.resourceRepository
@@ -371,6 +377,19 @@ export class ResourcesService {
       return this.resourceHelper.prepareResourceAfterFetch(item);
     });
     return result;
+  }
+
+  async getResourcesWithWonderIds(
+    wonderIds: Array<number>,
+  ): Promise<Array<Resource>> {
+    const resources = await this.resourceRepository.find({
+      where: { wonderId: In(wonderIds) },
+    });
+
+    resources.map((resource) =>
+      this.resourceHelper.prepareResourceAfterFetch(resource),
+    );
+    return resources;
   }
 
   async getUser(userId): Promise<User | null> {

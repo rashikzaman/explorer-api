@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ResourcesService } from '../../resources/services/resources.service';
 import { ConfigService } from '@nestjs/config';
 import { CommonWonderWithResource } from '../models/entities/common-wonder-with-resource.entity';
@@ -8,6 +8,8 @@ import { WondersService } from './wonders.service';
 import { Wonder } from '../models/entities/wonder.entity';
 import { json } from 'express';
 import { VisibilityService } from '../../visibility/services/visibility.service';
+import { Resource } from '../../resources/models/entities/resource.entity';
+import { ResourceHelper } from '../../resources/helpers/resource-helper';
 
 @Injectable()
 export class CommonWonderResourceService {
@@ -16,10 +18,13 @@ export class CommonWonderResourceService {
     private commonWonderWithResourceRepository: Repository<CommonWonderWithResource>,
     @InjectRepository(Wonder)
     private wonderRepository: Repository<Wonder>,
+    @InjectRepository(Resource)
+    private resourceRepository: Repository<Resource>,
     private wondersService: WondersService,
     private resourceService: ResourcesService,
     private configService: ConfigService,
     private visibilityService: VisibilityService,
+    private resourceHelper: ResourceHelper,
   ) {}
 
   async loadCommonWonders() {
@@ -28,7 +33,7 @@ export class CommonWonderResourceService {
       Object.keys(commonWondersWithResources).map(async (key) => {
         await Promise.all(
           commonWondersWithResources[key].map(async (item) => {
-            const wonder = await this.getWonderWithResource(key, item);
+            const wonder = await this.getWonderWithResource(key, item); //if this wonder with same resource id doesn't exist in common_wonder table, save it
             if (!wonder) {
               await this.commonWonderWithResourceRepository
                 .createQueryBuilder()

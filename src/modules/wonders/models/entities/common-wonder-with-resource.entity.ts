@@ -25,6 +25,11 @@ export class CommonWonderWithResource {
   @JoinColumn()
   resource: Resource;
 
+  resources: Array<Resource>;
+
+  @Column()
+  resourceId: number;
+
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',

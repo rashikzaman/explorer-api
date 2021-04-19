@@ -9,7 +9,7 @@ export class DiscoverController {
 
   @Get('wonderers')
   @UserAuthFind()
-  async findWonders(@Request() req) {
+  async findWonderers(@Request() req) {
     return await this.discoverService.findWonderers(req.user.userId);
   }
 
@@ -17,5 +17,11 @@ export class DiscoverController {
   @UserAuthFind()
   async findResources(@Request() req) {
     return await this.discoverService.findResources(req.user.userId);
+  }
+
+  @Get('wonders')
+  @UserAuthFind()
+  async findWonders(@Request() req) {
+    return await this.discoverService.findWonders(req.user.userId);
   }
 }

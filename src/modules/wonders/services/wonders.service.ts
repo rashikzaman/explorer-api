@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateWonderDto } from '../models/dto/create-wonder.dto';
 import { UpdateWonderDto } from '../models/dto/update-wonder.dto';
 import { Wonder } from '../models/entities/wonder.entity';
@@ -136,6 +136,38 @@ export class WondersService {
       else if (resource.urlImage) coverPhotoUrl = resource.urlImage;
     }
     return coverPhotoUrl;
+  }
+
+  async getAllCommonWonders() {
+    const wonders = await this.wonderRepository
+      .createQueryBuilder('wonder')
+      .groupBy('wonder.title')
+      .where('wonder.visibilityId = :visiblityId', { visiblityId: 2 })
+      .orderBy('wonder.title', 'ASC')
+      .getMany();
+
+    const data = [];
+
+    await Promise.all(
+      wonders.map(async (wonder) => {
+        const wonders = await this.wonderRepository.find({
+          title: wonder.title,
+          visibilityId: 2,
+        });
+        const wonderIds = wonders.map((item) => item.id);
+        const resources = await this.resourceService.getResourcesWithWonderIds(
+          wonderIds,
+        );
+
+        data.push({
+          title: wonder.title,
+          resources: resources,
+          resourcesCount: resources.length,
+        });
+      }),
+    );
+
+    return data;
   }
 
   async getUser(userId): Promise<User | null> {

@@ -9,7 +9,7 @@ import { Wonder } from '../models/entities/wonder.entity';
 import { json } from 'express';
 import { VisibilityService } from '../../visibility/services/visibility.service';
 import { Resource } from '../../resources/models/entities/resource.entity';
-import { ResourceHelper } from 'src/modules/resources/helpers/resource-helper';
+import { ResourceHelper } from '../../resources/helpers/resource-helper';
 
 @Injectable()
 export class CommonWonderResourceService {
@@ -101,41 +101,5 @@ export class CommonWonderResourceService {
       })
       .getOne();
     return wonderResource;
-  }
-
-  async getAllCommonWonders() {
-    const wonders = await this.wonderRepository
-      .createQueryBuilder('wonder')
-      .groupBy('wonder.title')
-      .where('wonder.visibilityId = :visiblityId', { visiblityId: 2 })
-      .orderBy('wonder.title', 'ASC')
-      .getMany();
-
-    const data = [];
-
-    await Promise.all(
-      wonders.map(async (wonder) => {
-        const wonders = await this.wonderRepository.find({
-          title: wonder.title,
-          visibilityId: 2,
-        });
-        const wonderIds = wonders.map((item) => item.id);
-        let resources = await this.resourceRepository.find({
-          where: { wonderId: In(wonderIds) },
-        });
-
-        resources = resources.map((resource) =>
-          this.resourceHelper.prepareResourceAfterFetch(resource),
-        );
-
-        data.push({
-          title: wonder.title,
-          resources: resources,
-          resourcesCount: resources.length,
-        });
-      }),
-    );
-
-    return data;
   }
 }

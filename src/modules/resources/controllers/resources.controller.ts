@@ -79,6 +79,7 @@ export class ResourcesController {
   @ApiQuery({ name: 'pageNumber' })
   @ApiQuery({ name: 'resourceTypeId' })
   @ApiQuery({ name: 'wonderId' })
+  @ApiQuery({ name: 'searchTerm' })
   findAll(
     @Request() req,
     @Query()
@@ -87,6 +88,7 @@ export class ResourcesController {
       pageNumber: number;
       resourceTypeId: number;
       wonderId: number;
+      searchTerm: string;
     },
   ) {
     return this.resourcesService.findAll(req.user.userId, query);
@@ -124,10 +126,11 @@ export class ResourcesController {
 
   @Get('group/resource-types')
   @ApiQuery({ name: 'wonderId' })
+  @ApiQuery({ name: 'pageSize' })
   @UserAuthFind()
   async groupResourcesByResourceTypes(
     @Request() req: any,
-    @Query() query: { wonderId: number },
+    @Query() query: { wonderId: number; pageSize: number },
   ) {
     return this.resourcesService.groupResourcesByResourceType(
       req.user.userId,

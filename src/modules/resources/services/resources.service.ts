@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../users/models/entity/user.entity';
-import { In, Repository } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
 import { UpdateResourceDto } from '../models/dto/update-resource.dto';
 import { Resource } from '../models/entities/resource.entity';
@@ -116,6 +116,7 @@ export class ResourcesService {
       pageNumber: number;
       resourceTypeId: number;
       wonderId: number;
+      searchTerm: string;
     },
   ): Promise<Collection | undefined> {
     const user = await this.getUser(userId);
@@ -149,6 +150,19 @@ export class ResourcesService {
       sqlQuery = sqlQuery.andWhere('resource.wonderId = :wonderId', {
         wonderId: query.wonderId,
       });
+    }
+
+    if (query.searchTerm) {
+      const searchTerm = query.searchTerm;
+      sqlQuery = sqlQuery.andWhere(
+        new Brackets((qb) => {
+          qb.where('resource.title like :title', {
+            title: `%${searchTerm}%`,
+          }).orWhere('resource.keywords like :name', {
+            name: `%${searchTerm}%`,
+          });
+        }),
+      );
     }
 
     const resources = await sqlQuery
@@ -275,7 +289,7 @@ export class ResourcesService {
 
   async groupResourcesByResourceType(
     userId: string,
-    query: { wonderId: number },
+    query: { wonderId: number; pageSize: number },
   ): Promise<Array<ResourceGroupByResourceType>> {
     const resourceTypes = await this.resourceTypeRepository.find({});
     const resourceGroupData = [];
@@ -292,7 +306,7 @@ export class ResourcesService {
         } = await this.getResourcesByResourceType(
           item,
           +userId,
-          3,
+          query.pageSize,
           query.wonderId,
         );
 

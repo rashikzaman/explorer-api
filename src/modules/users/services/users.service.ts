@@ -7,6 +7,7 @@ import { ProfileUpdateDto } from '../models/dto/profiile-update.dto';
 import { UserAttribute } from '../models/entity/user-attribute.entity';
 import { VisibilityService } from '../../visibility/services/visibility.service';
 import { UsersAuthService } from './user-auth.service';
+import Collection from '../../core/interfaces/collection/collection.interface';
 
 @Injectable()
 export class UsersService {
@@ -77,15 +78,34 @@ export class UsersService {
     });
   }
 
-  async getPublicUsers(): Promise<Array<User> | undefined> {
+  async getPublicUsers(query: {
+    pageSize: number;
+    pageNumber: number;
+  }): Promise<Collection | undefined> {
+    const pageSize = query.pageSize
+      ? query.pageSize
+      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
+    const pageNumber = query.pageNumber ?? 1;
+
+    const skippedItems = (pageNumber - 1) * pageSize;
+
     const publicVisibility = await this.visibilityService.getPublicVisibility();
-    const users = await this.usersRepository
+    const sqlQuery = this.usersRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.userAttribute', 'userAttribute')
       .where('user.visibilityId = :visibilityId', {
         visibilityId: publicVisibility.id,
-      })
-      .getMany();
-    return users;
+      });
+
+    const users = await sqlQuery.take(pageSize).skip(skippedItems).getMany();
+    const totalCount = await sqlQuery.getCount();
+
+    return {
+      items: users,
+      pageNumber:
+        typeof pageNumber === 'string' ? parseInt(pageNumber) : pageNumber,
+      pageSize: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
+      totalCount: totalCount,
+    };
   }
 }

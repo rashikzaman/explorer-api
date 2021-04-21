@@ -138,13 +138,25 @@ export class WondersService {
     return coverPhotoUrl;
   }
 
-  async getAllCommonWonders() {
-    const wonders = await this.wonderRepository
+  async getAllCommonWonders(query: {
+    pageSize: number;
+    pageNumber: number;
+  }): Promise<Collection | undefined> {
+    const pageSize = query.pageSize
+      ? query.pageSize
+      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
+    const pageNumber = query.pageNumber ?? 1;
+
+    const skippedItems = (pageNumber - 1) * pageSize;
+
+    const sqlQuery = this.wonderRepository
       .createQueryBuilder('wonder')
       .groupBy('wonder.title')
       .where('wonder.visibilityId = :visiblityId', { visiblityId: 2 })
-      .orderBy('wonder.title', 'ASC')
-      .getMany();
+      .orderBy('wonder.title', 'ASC');
+
+    const wonders = await sqlQuery.take(pageSize).skip(skippedItems).getMany();
+    const totalCount = await sqlQuery.getCount();
 
     const data = [];
 
@@ -167,7 +179,13 @@ export class WondersService {
       }),
     );
 
-    return data;
+    return {
+      items: data,
+      pageNumber:
+        typeof pageNumber === 'string' ? parseInt(pageNumber) : pageNumber,
+      pageSize: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
+      totalCount: totalCount,
+    };
   }
 
   async getUser(userId): Promise<User | null> {

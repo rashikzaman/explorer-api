@@ -360,9 +360,21 @@ export class ResourcesService {
     return resource;
   }
 
-  async getPublicAndInvitedOnlyResources(userId: number): Promise<Array<Resource>> {
-    const publicVisibility = await this.visibilityService.getPublicVisibility();
+  async getPublicAndInvitedOnlyResources(
+    userId: number,
+    query: {
+      pageSize: number;
+      pageNumber: number;
+    },
+  ): Promise<Collection | undefined> {
+    const pageSize = query.pageSize
+      ? query.pageSize
+      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
+    const pageNumber = query.pageNumber ?? 1;
 
+    const skippedItems = (pageNumber - 1) * pageSize;
+
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
     const sqlQuery = await this.resourceRepository
       .createQueryBuilder('resource')
       .leftJoinAndSelect('resource.resourceType', 'resoureceType')
@@ -372,11 +384,23 @@ export class ResourcesService {
         visibilityId: publicVisibility.id,
       });
 
-    const resources = await sqlQuery.getMany();
-    const result = resources.map((item) => {
+    const resources = await sqlQuery
+      .take(pageSize)
+      .skip(skippedItems)
+      .getMany();
+    const totalCount = await sqlQuery.getCount();
+
+    resources.map((item) => {
       return this.resourceHelper.prepareResourceAfterFetch(item);
     });
-    return result;
+
+    return {
+      items: resources,
+      pageNumber:
+        typeof pageNumber === 'string' ? parseInt(pageNumber) : pageNumber,
+      pageSize: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
+      totalCount: totalCount,
+    };
   }
 
   async getResourcesWithWonderIds(

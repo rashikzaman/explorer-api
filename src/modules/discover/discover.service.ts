@@ -13,20 +13,39 @@ export class DiscoverService {
     private readonly wonderSerivce: WondersService,
   ) {}
 
-  async findWonderers(userId: number) {
-    const users = await this.usersService.getPublicUsers();
+  async findWonderers(
+    userId: number,
+    query: {
+      pageSize: number;
+      pageNumber: number;
+    },
+  ) {
+    const users = await this.usersService.getPublicUsers(query);
     return users;
   }
 
-  async findResources(userId: number) {
+  async findResources(
+    userId: number,
+    query: {
+      pageSize: number;
+      pageNumber: number;
+    },
+  ) {
     const users = await this.resourcesService.getPublicAndInvitedOnlyResources(
       userId,
+      query,
     );
     return users;
   }
 
-  async findWonders(userId: number) {
-    const wonders = await this.wonderSerivce.getAllCommonWonders();
+  async findWonders(
+    userId: number,
+    query: {
+      pageSize: number;
+      pageNumber: number;
+    },
+  ) {
+    const wonders = await this.wonderSerivce.getAllCommonWonders(query);
     return wonders;
   }
 }

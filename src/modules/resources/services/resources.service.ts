@@ -228,7 +228,6 @@ export class ResourcesService {
       },
     });
 
-
     if (!resourceType)
       throw new BadRequestException({ message: 'Resource type not found' });
 
@@ -274,6 +273,7 @@ export class ResourcesService {
     resource.isSpecial = updateResourceDto.isSpecial === 'true';
     resource.keywords = keywordsString;
     resource.wonder = wonder;
+    resource.resourceType = resourceType;
     const result = await this.resourceRepository.save(resource);
     return result;
   }

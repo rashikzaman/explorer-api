@@ -25,6 +25,7 @@ export class Resource {
   user: User;
 
   @Column({ type: 'varchar', length: 255 })
+  @Index({ fulltext: true })
   title: string;
 
   @Column('text', { nullable: true })

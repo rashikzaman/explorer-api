@@ -33,8 +33,14 @@ export class ResourceSearchService {
       .leftJoinAndSelect('resource.resourceType', 'resoureceType')
       .leftJoinAndSelect('resource.visibility', 'visibility')
       .leftJoinAndSelect('resource.wonder', 'wonder')
-      .where('resource.title like :title', { title: `%${searchTerm}%` })
-      .orWhere('resource.keywords like :name', { name: `%${searchTerm}%` });
+      //.where('resource.title like :title', { title: `%${searchTerm}%` })
+      //.orWhere('resource.keywords like :name', { name: `%${searchTerm}%` });
+      .where(
+        `MATCH(resource.title) AGAINST ('${searchTerm}' IN NATURAL LANGUAGE MODE)`,
+      )
+      .orWhere(
+        `MATCH(resource.keywords) AGAINST ('${searchTerm}' IN NATURAL LANGUAGE MODE)`,
+      );
 
     if (forProfile) {
       sqlQuery = sqlQuery.andWhere('resource.userId = :userId', {

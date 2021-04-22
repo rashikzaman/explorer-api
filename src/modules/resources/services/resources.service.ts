@@ -228,6 +228,8 @@ export class ResourcesService {
       },
     });
 
+    if (!wonder) throw new BadRequestException({ message: 'Wonder not found' });
+
     if (!resourceType)
       throw new BadRequestException({ message: 'Resource type not found' });
 

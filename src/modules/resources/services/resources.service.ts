@@ -221,6 +221,14 @@ export class ResourcesService {
     const visibility = await this.visibilityRepository.findOne(
       updateResourceDto.visibilityTypeId,
     );
+    const wonder = await this.wonderRepository.findOne({
+      where: {
+        id: updateResourceDto.wonderId,
+        user: user,
+      },
+    });
+
+    if (!wonder) throw new BadRequestException({ message: 'Wonder not found' });
 
     if (!resourceType)
       throw new BadRequestException({ message: 'Resource type not found' });
@@ -266,6 +274,8 @@ export class ResourcesService {
     resource.urlImage = updateResourceDto.urlImage;
     resource.isSpecial = updateResourceDto.isSpecial === 'true';
     resource.keywords = keywordsString;
+    resource.wonder = wonder;
+    resource.resourceType = resourceType;
     const result = await this.resourceRepository.save(resource);
     return result;
   }

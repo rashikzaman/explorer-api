@@ -61,6 +61,7 @@ export class Resource {
   urlImage: string;
 
   @Column({ type: 'text', nullable: true })
+  @Index({ fulltext: true })
   keywords: string;
 
   @Column({ default: false })

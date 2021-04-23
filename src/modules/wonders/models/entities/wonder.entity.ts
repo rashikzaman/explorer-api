@@ -3,8 +3,6 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  Unique,
-  BeforeInsert,
   OneToOne,
   JoinColumn,
   Index,
@@ -21,6 +19,7 @@ export class Wonder {
   id: number;
 
   @Column({ type: 'varchar', length: '100' })
+  @Index({ fulltext: true })
   title: string;
 
   @Column({ type: 'text' })

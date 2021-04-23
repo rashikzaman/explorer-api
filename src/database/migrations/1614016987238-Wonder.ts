@@ -63,6 +63,7 @@ export class Wonder1614016987238 implements MigrationInterface {
             referencedTableName: 'visibility',
           },
         ],
+        indices: [{ columnNames: ['title'], isFulltext: true }],
       }),
       true,
     );

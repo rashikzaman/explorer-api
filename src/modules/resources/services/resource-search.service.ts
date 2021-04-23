@@ -33,8 +33,6 @@ export class ResourceSearchService {
       .leftJoinAndSelect('resource.resourceType', 'resoureceType')
       .leftJoinAndSelect('resource.visibility', 'visibility')
       .leftJoinAndSelect('resource.wonder', 'wonder')
-      //.where('resource.title like :title', { title: `%${searchTerm}%` })
-      //.orWhere('resource.keywords like :name', { name: `%${searchTerm}%` });
       .where(
         `MATCH(resource.title) AGAINST ('${searchTerm}' IN NATURAL LANGUAGE MODE)`,
       )

@@ -40,7 +40,7 @@ export class ResourcesService {
     @Inject(forwardRef(() => WondersService))
     private readonly wondersService: WondersService,
     private readonly resourcesTypeService: ResourceTypesService,
-  ) { }
+  ) {}
 
   async create(
     createResourceDto: CreateResourceDto,
@@ -443,9 +443,7 @@ export class ResourcesService {
   }
 
   async getVisibility(visibilityTypeId: number) {
-    const visibility = await this.visibilityService.getVisibility(
-      visibilityTypeId,
-    );
+    const visibility = await this.visibilityService.findOne(visibilityTypeId);
 
     if (!visibility)
       throw new BadRequestException({ message: 'Visibility type not found' });

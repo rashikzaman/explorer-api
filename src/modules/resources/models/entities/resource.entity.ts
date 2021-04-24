@@ -24,6 +24,9 @@ export class Resource {
   @JoinColumn()
   user: User;
 
+  @Column()
+  userId: number;
+
   @Column({ type: 'varchar', length: 255 })
   @Index({ fulltext: true })
   title: string;

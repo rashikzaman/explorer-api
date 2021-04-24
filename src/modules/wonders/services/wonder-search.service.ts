@@ -25,7 +25,9 @@ export class WonderSearchService {
   ): Promise<Wonder[] | undefined> {
     let sqlQuery = this.wonderRepository
       .createQueryBuilder('wonder')
-      .where('wonder.title like :title', { title: `%${searchTerm}%` });
+      .where(
+        `MATCH(wonder.title) AGAINST ('${searchTerm}' IN NATURAL LANGUAGE MODE)`,
+      );
 
     if (forProfile) {
       sqlQuery = sqlQuery.andWhere('wonder.userId = :userId', {

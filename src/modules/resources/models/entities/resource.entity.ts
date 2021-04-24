@@ -25,6 +25,7 @@ export class Resource {
   user: User;
 
   @Column({ type: 'varchar', length: 255 })
+  @Index({ fulltext: true })
   title: string;
 
   @Column('text', { nullable: true })
@@ -60,6 +61,7 @@ export class Resource {
   urlImage: string;
 
   @Column({ type: 'text', nullable: true })
+  @Index({ fulltext: true })
   keywords: string;
 
   @Column({ default: false })

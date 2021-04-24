@@ -108,6 +108,7 @@ export class Resource1614003446448 implements MigrationInterface {
             referencedTableName: 'wonder',
           },
         ],
+        indices: [{ columnNames: ['title', 'keywords'], isFulltext: true }],
       }),
       true,
     );

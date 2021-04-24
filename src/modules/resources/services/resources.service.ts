@@ -156,11 +156,13 @@ export class ResourcesService {
       const searchTerm = query.searchTerm;
       sqlQuery = sqlQuery.andWhere(
         new Brackets((qb) => {
-          qb.where('resource.title like :title', {
-            title: `%${searchTerm}%`,
-          }).orWhere('resource.keywords like :name', {
-            name: `%${searchTerm}%`,
-          });
+          qb.where(
+            'MATCH(resource.title) AGAINST (:searchTerm IN NATURAL LANGUAGE MODE)',
+            { searchTerm: searchTerm },
+          ).orWhere(
+            'MATCH(resource.keywords) AGAINST (:searchTerm IN NATURAL LANGUAGE MODE)',
+            { searchTerm: searchTerm },
+          );
         }),
       );
     }

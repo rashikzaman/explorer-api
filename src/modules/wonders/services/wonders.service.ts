@@ -204,9 +204,8 @@ export class WondersService {
       where: { userId: userId, title: defaultWonderTitle },
     });
 
-    const privateVisibility = await this.visibilityService.getPrivateVisibility();
-
     if (!wonder) {
+      const privateVisibility = await this.visibilityService.getPrivateVisibility(); //make default wonder private
       const wonder = await this.wonderRepository.save({
         title: defaultWonderTitle,
         userId: userId,

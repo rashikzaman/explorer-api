@@ -133,7 +133,7 @@ export class ResourcesController {
     @Query() query: { wonderId: number; pageSize: number },
   ) {
     return this.resourcesService.groupResourcesByResourceType(
-      req.user.userId,
+      +req.user.userId,
       query,
     );
   }

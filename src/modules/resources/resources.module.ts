@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ResourcesService } from './services/resources.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WebsiteResourceType } from './models/entities/website-resource-type.entity';
@@ -18,6 +18,7 @@ import { ResourceSearchService } from './services/resource-search.service';
 import { ResourceHelper } from './helpers/resource-helper';
 import { Wonder } from '../wonders/models/entities/wonder.entity';
 import { VisibilityModule } from '../visibility/visibility.module';
+import { WondersModule } from '../wonders/wonders.module';
 
 @Module({
   controllers: [
@@ -44,6 +45,7 @@ import { VisibilityModule } from '../visibility/visibility.module';
       Wonder,
     ]),
     VisibilityModule,
+    forwardRef(() => WondersModule),
   ],
   exports: [ResourcesService, ResourceSearchService, ResourceHelper],
 })

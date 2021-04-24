@@ -29,6 +29,9 @@ export class Wonder {
   @JoinColumn({ name: 'userId' })
   user: User;
 
+  @Column()
+  userId: number;
+
   @ManyToOne(() => Visibility)
   @JoinColumn()
   visibility: Visibility;

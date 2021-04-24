@@ -116,13 +116,21 @@ export class WondersService {
     updateWonderDto: UpdateWonderDto,
   ): Promise<Wonder | undefined> {
     const wonder = await this.findOne(id, updateWonderDto.userId);
-    const publicVisibility = await this.visibilityService.getPublicVisibility();
+
+    let visibility = null;
+
+    if (updateWonderDto.visibilityTypeId) {
+      visibility = await this.visibilityService.findOne(
+        updateWonderDto.visibilityTypeId,
+      );
+      if (!visibility) throw new NotFoundException('Visibility Type not found');
+    } else visibility = wonder.visibility;
 
     wonder.title = updateWonderDto.title;
     wonder.description = updateWonderDto.description;
     wonder.coverPhotoUrl = updateWonderDto.coverPhoto ?? wonder.coverPhotoUrl; // if request converphoto is null, don't insert it
     wonder.updatedAt = new Date();
-    wonder.visibility = publicVisibility;
+    wonder.visibility = visibility;
     const result = await this.wonderRepository.save(wonder);
     return result;
   }

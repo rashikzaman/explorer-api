@@ -155,18 +155,4 @@ export class ResourcesController {
     createUserSavedResourceDto.resourceId = +id;
     return this.userSavedResourceService.save(createUserSavedResourceDto);
   }
-
-  @Delete(':id/save')
-  @ApiQuery({ name: 'resourceId' })
-  @ApiQuery({ name: 'userId' })
-  @UserAuthCreate()
-  async deleteSavedResource(
-    @Body() deleteUserSavedResourceDto: DeleteUserSavedUserResourceDto,
-    @Request() req: any,
-    @Param('id') id: string,
-  ) {
-    deleteUserSavedResourceDto.userId = req.user.userId;
-    deleteUserSavedResourceDto.resourceId = +id;
-    return this.userSavedResourceService.unsave(deleteUserSavedResourceDto);
-  }
 }

@@ -49,15 +49,20 @@ export class UserSavedResourceService {
   async save(
     createUserSavedResourceDto: CreateUserSavedUserResourceDto,
   ): Promise<any | undefined> {
-    const resource = await this.resourcesService.findOne(
+    const resource: Resource = await this.resourcesService.findOne(
       createUserSavedResourceDto.resourceId,
       null,
       false,
     );
-    if (!resource) throw new BadRequestException('Resource not found')
+    if (!resource) throw new BadRequestException('Resource not found');
+
+    const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
 
     if (resource.userId === createUserSavedResourceDto.userId)
       throw new BadRequestException('User owns this resource already');
+
+    if (resource.visibilityId !== publicVisibility.id)
+      throw new BadRequestException('This is not a public resource to save!');
 
     let savedResource = null;
     savedResource = await this.resourceRepository.findOne({

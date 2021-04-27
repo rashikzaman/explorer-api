@@ -26,8 +26,8 @@ import { VisibilityService } from '../../visibility/services/visibility.service'
 import { WondersService } from '../../wonders/services/wonders.service';
 import { ResourceTypesService } from './resource-types.service';
 import { CreateUserSavedUserResourceDto } from '../models/dto/create-user-saved-resource.dto';
-import { UserSavedResource } from '../models/entities/user-saved-resource.entity';
 import { DeleteUserSavedUserResourceDto } from '../models/dto/delete-user-saved-resource.dto';
+import { ResourcesService } from './resources.service';
 
 @Injectable()
 export class UserSavedResourceService {
@@ -43,52 +43,39 @@ export class UserSavedResourceService {
     @Inject(forwardRef(() => WondersService))
     private readonly wondersService: WondersService,
     private readonly resourcesTypeService: ResourceTypesService,
-    @InjectRepository(UserSavedResource)
-    private readonly userSavedResourceRepository: Repository<UserSavedResource>,
-  ) {}
+    private readonly resourcesService: ResourcesService,
+  ) { }
 
   async save(
     createUserSavedResourceDto: CreateUserSavedUserResourceDto,
-  ): Promise<UserSavedResource | undefined> {
-    const resource = await this.resourceRepository.findOne(
+  ): Promise<any | undefined> {
+    const resource = await this.resourcesService.findOne(
       createUserSavedResourceDto.resourceId,
-      {
-        relations: ['user'],
-      },
+      null,
+      false,
     );
-    if (!resource) throw new NotFoundException('Resource not found!');
-    const publicVisibility = await this.visibilityService.getPublicVisibility();
+    if (!resource) throw new BadRequestException('Resource not found')
 
     if (resource.userId === createUserSavedResourceDto.userId)
-      throw new BadRequestException('This resource belongs to you!');
+      throw new BadRequestException('User owns this resource already');
 
-    if (resource.visibilityId === publicVisibility.id) {
-      let savedResource = null;
-      savedResource = await this.userSavedResourceRepository.findOne({
+    let savedResource = null;
+    savedResource = await this.resourceRepository.findOne({
+      where: {
         userId: createUserSavedResourceDto.userId,
-        resourceId: createUserSavedResourceDto.resourceId,
-      });
-
-      if (savedResource) return savedResource;
-
-      savedResource = await this.userSavedResourceRepository.save({
-        userId: createUserSavedResourceDto.userId,
-        resourceId: createUserSavedResourceDto.resourceId,
-      });
-
-      return savedResource;
-    } else {
-      throw new BadRequestException('This resource is not public');
-    }
-  }
-
-  async unsave(
-    deleteUserSavedResourceDto: DeleteUserSavedUserResourceDto,
-  ): Promise<boolean> {
-    await this.userSavedResourceRepository.delete({
-      userId: deleteUserSavedResourceDto.userId,
-      resourceId: deleteUserSavedResourceDto.resourceId,
+        originalResourceId: createUserSavedResourceDto.resourceId, //check if user already has copy of it
+      },
     });
-    return true;
+
+    if (!savedResource) {
+      resource.id = null;
+      resource.userId = createUserSavedResourceDto.userId;
+      resource.isSaved = true;
+      resource.originalResourceId = createUserSavedResourceDto.resourceId;
+      savedResource = await this.resourceRepository.save(resource);
+      return savedResource;
+    }
+
+    return savedResource;
   }
 }

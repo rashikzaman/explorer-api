@@ -20,7 +20,6 @@ import { Wonder } from '../wonders/models/entities/wonder.entity';
 import { VisibilityModule } from '../visibility/visibility.module';
 import { WondersModule } from '../wonders/wonders.module';
 import { UserSavedResourceService } from './services/user-saved-resource.service';
-import { UserSavedResource } from './models/entities/user-saved-resource.entity';
 
 @Module({
   controllers: [
@@ -46,7 +45,6 @@ import { UserSavedResource } from './models/entities/user-saved-resource.entity'
       Visibility,
       ResourceType,
       Wonder,
-      UserSavedResource,
     ]),
     VisibilityModule,
     forwardRef(() => WondersModule),

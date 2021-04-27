@@ -33,8 +33,14 @@ export class ResourceSearchService {
       .leftJoinAndSelect('resource.resourceType', 'resoureceType')
       .leftJoinAndSelect('resource.visibility', 'visibility')
       .leftJoinAndSelect('resource.wonder', 'wonder')
-      .where('resource.title like :title', { title: `%${searchTerm}%` })
-      .orWhere('resource.keywords like :name', { name: `%${searchTerm}%` });
+      .where(
+        'MATCH(resource.title) AGAINST (:searchTerm IN NATURAL LANGUAGE MODE)',
+        { searchTerm: searchTerm },
+      )
+      .orWhere(
+        'MATCH(resource.keywords) AGAINST (:searchTerm IN NATURAL LANGUAGE MODE)',
+        { searchTerm: searchTerm },
+      );
 
     if (forProfile) {
       sqlQuery = sqlQuery.andWhere('resource.userId = :userId', {
@@ -43,9 +49,17 @@ export class ResourceSearchService {
     }
 
     const resources = await sqlQuery.take(limit).getMany();
+
     resources.map((item) => {
       return this.resourceHelper.prepareResourceAfterFetch(item);
     });
     return resources;
   }
 }
+
+// .select([
+//   'resource.id',
+//   'resource.title',
+//   `MATCH(resource.title) AGAINST ('${searchTerm}' IN NATURAL LANGUAGE MODE) > 0 AS score`,
+// ]).having('score > 0')
+// .orderBy('score', 'DESC')

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { WondersService } from './services/wonders.service';
 import { WondersController } from './controllers/wonders.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -27,9 +27,9 @@ import { Resource } from '../resources/models/entities/resource.entity';
       User,
       Visibility,
       CommonWonderWithResource,
-      Resource
+      Resource,
     ]),
-    ResourcesModule,
+    forwardRef(() => ResourcesModule),
     VisibilityModule,
   ],
   exports: [WondersService, WonderSearchService, CommonWonderResourceService],

@@ -8,6 +8,7 @@ import {
   Index,
   ManyToOne,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 
 import { User } from '../../../users/models/entity/user.entity';
@@ -24,7 +25,11 @@ export class Resource {
   @JoinColumn()
   user: User;
 
+  @Column()
+  userId: number;
+
   @Column({ type: 'varchar', length: 255 })
+  @Index({ fulltext: true })
   title: string;
 
   @Column('text', { nullable: true })
@@ -51,6 +56,9 @@ export class Resource {
   resourceType: ResourceType;
 
   @Column()
+  resourceTypeId: number;
+
+  @Column()
   wonderId: number;
 
   @ManyToOne(() => Wonder, (wonder) => wonder.resources)
@@ -60,10 +68,21 @@ export class Resource {
   urlImage: string;
 
   @Column({ type: 'text', nullable: true })
+  @Index({ fulltext: true })
   keywords: string;
 
   @Column({ default: false })
   isSpecial: boolean;
+
+  @Column({ default: false })
+  isSaved: boolean;
+
+  @OneToOne(() => Resource)
+  @JoinColumn()
+  originalResource: Resource;
+
+  @Column()
+  originalResourceId: number;
 
   @Column({
     type: 'timestamp',

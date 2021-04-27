@@ -60,7 +60,7 @@ export class UsersService {
     user.name = profileUpdateDto.name;
     user.email = profileUpdateDto.email;
     user.username = profileUpdateDto.username;
-    const visibility = await this.visibilityService.getVisibility(
+    const visibility = await this.visibilityService.findOne(
       profileUpdateDto.visibilityId,
     );
     user.visibility = visibility;

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  forwardRef,
   Inject,
   Injectable,
   NotFoundException,
@@ -22,51 +23,40 @@ import { Logger } from 'winston';
 import { ResourceHelper } from '../helpers/resource-helper';
 import Collection from '../../core/interfaces/collection/collection.interface';
 import { VisibilityService } from '../../visibility/services/visibility.service';
+import { WondersService } from '../../wonders/services/wonders.service';
+import { ResourceTypesService } from './resource-types.service';
 
 @Injectable()
 export class ResourcesService {
   constructor(
     @InjectRepository(Resource)
     private resourceRepository: Repository<Resource>,
-    @InjectRepository(Wonder)
-    private wonderRepository: Repository<Wonder>,
     @InjectRepository(User) private userRepository: Repository<User>,
-    @InjectRepository(Visibility)
-    private visibilityRepository: Repository<Visibility>,
-    @InjectRepository(ResourceType)
-    private resourceTypeRepository: Repository<ResourceType>,
     private configService: ConfigService,
     private s3FileService: S3FileService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private resourceHelper: ResourceHelper,
     private readonly visibilityService: VisibilityService,
+    @Inject(forwardRef(() => WondersService))
+    private readonly wondersService: WondersService,
+    private readonly resourcesTypeService: ResourceTypesService,
   ) {}
 
   async create(
     createResourceDto: CreateResourceDto,
   ): Promise<Resource | undefined> {
     const user = await this.userRepository.findOne(createResourceDto.userId);
-    const resourceType = await this.resourceTypeRepository.findOne(
+    const resourceType = await this.getResourceType(
       createResourceDto.resourceTypeId,
     );
-    const visibility = await this.visibilityRepository.findOne(
+    const visibility = await this.getVisibility(
       createResourceDto.visibilityTypeId,
     );
-    const wonder = await this.wonderRepository.findOne({
-      where: {
-        id: createResourceDto.wonderId,
-        user: user,
-      },
-    });
 
-    if (!resourceType)
-      throw new BadRequestException({ message: 'Resource type not found' });
-
-    if (!visibility)
-      throw new BadRequestException({ message: 'Visibility type not found' });
-
-    if (createResourceDto.wonderId && !wonder)
-      throw new BadRequestException({ message: 'Wonder not found' });
+    const wonder = await this.getWonder(
+      createResourceDto.wonderId,
+      createResourceDto.userId,
+    );
 
     let s3Image = null;
     let s3AudioClip = null;
@@ -156,11 +146,13 @@ export class ResourcesService {
       const searchTerm = query.searchTerm;
       sqlQuery = sqlQuery.andWhere(
         new Brackets((qb) => {
-          qb.where('resource.title like :title', {
-            title: `%${searchTerm}%`,
-          }).orWhere('resource.keywords like :name', {
-            name: `%${searchTerm}%`,
-          });
+          qb.where(
+            'MATCH(resource.title) AGAINST (:searchTerm IN NATURAL LANGUAGE MODE)',
+            { searchTerm: searchTerm },
+          ).orWhere(
+            'MATCH(resource.keywords) AGAINST (:searchTerm IN NATURAL LANGUAGE MODE)',
+            { searchTerm: searchTerm },
+          );
         }),
       );
     }
@@ -195,7 +187,9 @@ export class ResourcesService {
   ): Promise<Resource | any> {
     const user = await this.getUser(userId);
     const resource = await this.resourceRepository.findOne(id, {
-      relations: withRelation ? ['resourceType', 'visibility', 'user'] : [],
+      relations: withRelation
+        ? ['resourceType', 'visibility', 'user', 'originalResource']
+        : [],
       where: { ...(user && { user: user }) },
     });
     if (!resource) throw new NotFoundException();
@@ -215,28 +209,17 @@ export class ResourcesService {
 
     if (resource.user.id !== user.id) throw new UnauthorizedException(); //resource user must be equal to user who is updating it, otherwise throw unauthorized exception
 
-    const resourceType = await this.resourceTypeRepository.findOne(
+    const resourceType = await this.getResourceType(
       updateResourceDto.resourceTypeId,
     );
-    const visibility = await this.visibilityRepository.findOne(
+    const visibility = await this.getVisibility(
       updateResourceDto.visibilityTypeId,
     );
-    const wonder = await this.wonderRepository.findOne({
-      where: {
-        id: updateResourceDto.wonderId,
-        user: user,
-      },
-    });
 
-    if (!wonder) throw new BadRequestException({ message: 'Wonder not found' });
-
-    if (!resourceType)
-      throw new BadRequestException({ message: 'Resource type not found' });
-
-    if (!visibility)
-      throw new BadRequestException({
-        message: 'Visibility type not found',
-      });
+    const wonder = await this.getWonder(
+      updateResourceDto.wonderId,
+      updateResourceDto.userId,
+    );
 
     let s3Image = null;
     let s3AudioClip = null;
@@ -298,13 +281,17 @@ export class ResourcesService {
   }
 
   async groupResourcesByResourceType(
-    userId: string,
+    userId: number,
     query: { wonderId: number; pageSize: number },
   ): Promise<Array<ResourceGroupByResourceType>> {
-    const resourceTypes = await this.resourceTypeRepository.find({});
+    const resourceTypes = await this.resourcesTypeService.findAll();
     const resourceGroupData = [];
     if (query.wonderId) {
-      const wonder = await this.wonderRepository.findOne(query.wonderId);
+      const wonder = await this.wondersService.findOne(
+        query.wonderId,
+        userId,
+        false,
+      );
       if (!wonder) throw new NotFoundException('Wonder not found');
     }
 
@@ -438,6 +425,40 @@ export class ResourcesService {
       this.resourceHelper.prepareResourceAfterFetch(resource),
     );
     return resources;
+  }
+
+  async getWonder(
+    wonderId: number | null,
+    userId: number,
+  ): Promise<Wonder | undefined> {
+    let wonder = null;
+
+    if (wonderId) {
+      wonder = await this.wondersService.findOne(wonderId, userId, false);
+      if (!wonder)
+        throw new BadRequestException({ message: 'Wonder not found' });
+    } else {
+      wonder = await this.wondersService.getOrCreateDefaultWonder(userId);
+    }
+
+    return wonder;
+  }
+
+  async getVisibility(visibilityTypeId: number) {
+    const visibility = await this.visibilityService.findOne(visibilityTypeId);
+
+    if (!visibility)
+      throw new BadRequestException({ message: 'Visibility type not found' });
+    return visibility;
+  }
+
+  async getResourceType(resourceTypeId: number) {
+    const resourceType = await this.resourcesTypeService.findOne(
+      resourceTypeId,
+    );
+    if (!resourceType)
+      throw new BadRequestException({ message: 'Resource type not found' });
+    return resourceType;
   }
 
   async getUser(userId): Promise<User | null> {

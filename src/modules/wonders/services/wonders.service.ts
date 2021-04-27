@@ -1,10 +1,12 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateWonderDto } from '../models/dto/create-wonder.dto';
 import { UpdateWonderDto } from '../models/dto/update-wonder.dto';
 import { Wonder } from '../models/entities/wonder.entity';
@@ -17,15 +19,19 @@ import { VisibilityService } from '../../visibility/services/visibility.service'
 
 @Injectable()
 export class WondersService {
+  private defaultWonderTitle;
   constructor(
     @InjectRepository(Wonder)
-    private wonderRepository: Repository<Wonder>,
-    @InjectRepository(User) private userRepository: Repository<User>,
-    private resourceService: ResourcesService,
-    private resourceHelper: ResourceHelper,
-    private configService: ConfigService,
-    private visibilityService: VisibilityService,
-  ) {}
+    private readonly wonderRepository: Repository<Wonder>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @Inject(forwardRef(() => ResourcesService))
+    private readonly resourceService: ResourcesService,
+    private readonly resourceHelper: ResourceHelper,
+    private readonly configService: ConfigService,
+    private readonly visibilityService: VisibilityService,
+  ) {
+    this.defaultWonderTitle = 'Other';
+  }
 
   async create(createWonderDto: CreateWonderDto): Promise<Wonder | undefined> {
     const user = await this.getUser(createWonderDto.userId);
@@ -82,7 +88,7 @@ export class WondersService {
 
   async findOne(
     id: number,
-    userId: string,
+    userId: number,
     withRelation = true,
   ): Promise<Wonder | undefined> {
     let sqlQuery = this.wonderRepository
@@ -97,7 +103,11 @@ export class WondersService {
     }
 
     const wonder = await sqlQuery.getOne();
-    wonder.coverPhotoUrl = await this.addCoverPhotoOfWonder(wonder.id, +userId);
+    if (wonder)
+      wonder.coverPhotoUrl = await this.addCoverPhotoOfWonder(
+        wonder.id,
+        +userId,
+      );
     return wonder;
   }
 
@@ -105,20 +115,28 @@ export class WondersService {
     id: number,
     updateWonderDto: UpdateWonderDto,
   ): Promise<Wonder | undefined> {
-    const wonder = await this.findOne(id, updateWonderDto.userId.toString());
-    const publicVisibility = await this.visibilityService.getPublicVisibility();
+    const wonder = await this.findOne(id, updateWonderDto.userId);
+
+    let visibility = null;
+
+    if (updateWonderDto.visibilityTypeId) {
+      visibility = await this.visibilityService.findOne(
+        updateWonderDto.visibilityTypeId,
+      );
+      if (!visibility) throw new NotFoundException('Visibility Type not found');
+    } else visibility = wonder.visibility;
 
     wonder.title = updateWonderDto.title;
     wonder.description = updateWonderDto.description;
     wonder.coverPhotoUrl = updateWonderDto.coverPhoto ?? wonder.coverPhotoUrl; // if request converphoto is null, don't insert it
     wonder.updatedAt = new Date();
-    wonder.visibility = publicVisibility;
+    wonder.visibility = visibility;
     const result = await this.wonderRepository.save(wonder);
     return result;
   }
 
   async remove(id: number, userId: string): Promise<any> {
-    await this.findOne(id, userId);
+    await this.findOne(id, +userId);
     const result = await this.wonderRepository.delete(id);
     if (!result || result.affected === 0) throw new NotFoundException();
     return result;
@@ -186,6 +204,24 @@ export class WondersService {
       pageSize: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
       totalCount: totalCount,
     };
+  }
+
+  async getOrCreateDefaultWonder(userId: number): Promise<Wonder | undefined> {
+    const defaultWonderTitle = this.defaultWonderTitle;
+    const wonder = await this.wonderRepository.findOne({
+      where: { userId: userId, title: defaultWonderTitle },
+    });
+
+    if (!wonder) {
+      const privateVisibility = await this.visibilityService.getPrivateVisibility(); //make default wonder private
+      const wonder = await this.wonderRepository.save({
+        title: defaultWonderTitle,
+        userId: userId,
+        visibility: privateVisibility,
+      });
+      return wonder;
+    }
+    return wonder;
   }
 
   async getUser(userId): Promise<User | null> {

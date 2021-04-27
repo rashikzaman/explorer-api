@@ -70,6 +70,16 @@ export class Resource1614003446448 implements MigrationInterface {
             isNullable: true,
           },
           {
+            name: 'isSaved',
+            type: 'boolean',
+            default: false,
+          },
+          {
+            name: 'originalResourceId',
+            type: 'int',
+            isNullable: true,
+          },
+          {
             name: 'keywords',
             type: 'text',
             isNullable: true,
@@ -107,7 +117,13 @@ export class Resource1614003446448 implements MigrationInterface {
             referencedColumnNames: ['id'],
             referencedTableName: 'wonder',
           },
+          {
+            columnNames: ['originalResourceId'],
+            referencedColumnNames: ['id'],
+            referencedTableName: 'resource',
+          },
         ],
+        indices: [{ columnNames: ['title', 'keywords'], isFulltext: true }],
       }),
       true,
     );

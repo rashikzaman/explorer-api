@@ -126,6 +126,10 @@ export class ResourcesService {
       .leftJoinAndSelect('resource.resourceType', 'resoureceType')
       .leftJoinAndSelect('resource.visibility', 'visibility')
       .leftJoinAndSelect('resource.wonder', 'wonder')
+      .loadRelationCountAndMap(
+        'resource.clonedResourcesCount',
+        'resource.clonedResources',
+      )
       .where('resource.userId = :userId', { userId: userId });
 
     if (query.resourceTypeId)

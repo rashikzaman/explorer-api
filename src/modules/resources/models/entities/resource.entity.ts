@@ -81,6 +81,10 @@ export class Resource {
   @JoinColumn()
   originalResource: Resource;
 
+  @OneToMany(() => Resource, (resource) => resource.originalResource)
+  clonedResources: Resource[];
+  clonedResourcesCount: number;
+
   @Column()
   originalResourceId: number;
 

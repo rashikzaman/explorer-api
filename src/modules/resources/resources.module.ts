@@ -19,6 +19,7 @@ import { ResourceHelper } from './helpers/resource-helper';
 import { Wonder } from '../wonders/models/entities/wonder.entity';
 import { VisibilityModule } from '../visibility/visibility.module';
 import { WondersModule } from '../wonders/wonders.module';
+import { UserSavedResourceService } from './services/user-saved-resource.service';
 
 @Module({
   controllers: [
@@ -34,6 +35,7 @@ import { WondersModule } from '../wonders/wonders.module';
     S3FileService,
     ResourceSearchService,
     ResourceHelper,
+    UserSavedResourceService,
   ],
   imports: [
     TypeOrmModule.forFeature([

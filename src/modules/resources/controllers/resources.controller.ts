@@ -33,11 +33,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { S3FileService } from '../../aws/s3/services/s3-file.service';
 import { ApiQuery } from '@nestjs/swagger';
+import { UserSavedResourceService } from '../services/user-saved-resource.service';
+import { CreateUserSavedUserResourceDto } from '../models/dto/create-user-saved-resource.dto';
+import { DeleteUserSavedUserResourceDto } from '../models/dto/delete-user-saved-resource.dto';
 
 @Controller('resources')
 export class ResourcesController {
   constructor(
     private readonly resourcesService: ResourcesService,
+    private readonly userSavedResourceService: UserSavedResourceService,
     private s3FileService: S3FileService,
   ) {}
 
@@ -136,5 +140,19 @@ export class ResourcesController {
       +req.user.userId,
       query,
     );
+  }
+
+  @Post(':id/save')
+  @ApiQuery({ name: 'resourceId' })
+  @ApiQuery({ name: 'userId' })
+  @UserAuthCreate()
+  async saveResource(
+    @Body() createUserSavedResourceDto: CreateUserSavedUserResourceDto,
+    @Request() req: any,
+    @Param('id') id: string,
+  ) {
+    createUserSavedResourceDto.userId = req.user.userId;
+    createUserSavedResourceDto.resourceId = +id;
+    return this.userSavedResourceService.save(createUserSavedResourceDto);
   }
 }

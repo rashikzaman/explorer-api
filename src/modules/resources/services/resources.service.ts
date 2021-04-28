@@ -126,6 +126,10 @@ export class ResourcesService {
       .leftJoinAndSelect('resource.resourceType', 'resoureceType')
       .leftJoinAndSelect('resource.visibility', 'visibility')
       .leftJoinAndSelect('resource.wonder', 'wonder')
+      .loadRelationCountAndMap(
+        'resource.clonedResourcesCount',
+        'resource.clonedResources',
+      )
       .where('resource.userId = :userId', { userId: userId });
 
     if (query.resourceTypeId)
@@ -187,7 +191,9 @@ export class ResourcesService {
   ): Promise<Resource | any> {
     const user = await this.getUser(userId);
     const resource = await this.resourceRepository.findOne(id, {
-      relations: withRelation ? ['resourceType', 'visibility', 'user'] : [],
+      relations: withRelation
+        ? ['resourceType', 'visibility', 'user', 'originalResource']
+        : [],
       where: { ...(user && { user: user }) },
     });
     if (!resource) throw new NotFoundException();

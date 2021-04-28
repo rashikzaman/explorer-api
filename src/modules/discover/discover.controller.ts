@@ -1,7 +1,6 @@
-import { Controller, Get, Query, Request } from '@nestjs/common';
+import { Controller, Get, Param, Query, Request } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { UserAuthFind } from '../core/decorators/auth.decorator';
-import { ResourcesService } from '../resources/services/resources.service';
 import { DiscoverService } from './discover.service';
 
 @Controller('discover')
@@ -23,6 +22,12 @@ export class DiscoverController {
     return await this.discoverService.findWonderers(req.user.userId, query);
   }
 
+  @Get('wonderers/:id')
+  @UserAuthFind()
+  async findWonderer(@Request() req, @Param('id') id: string) {
+    return await this.discoverService.findWonderer(+id);
+  }
+
   @Get('resources')
   @UserAuthFind()
   @ApiQuery({ name: 'pageSize' })
@@ -38,6 +43,13 @@ export class DiscoverController {
     return await this.discoverService.findResources(req.user.userId, query);
   }
 
+  @Get('resources/:id')
+  @UserAuthFind()
+  async findResource(@Request() req, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return await this.discoverService.findResource(+id, +userId);
+  }
+
   @Get('wonders')
   @UserAuthFind()
   @ApiQuery({ name: 'pageSize' })
@@ -51,5 +63,12 @@ export class DiscoverController {
     },
   ) {
     return await this.discoverService.findWonders(req.user.userId, query);
+  }
+
+  @Get('wonders/:title')
+  @UserAuthFind()
+  async findWonder(@Request() req, @Param('title') title: string) {
+    const userId = req.user.userId;
+    return await this.discoverService.findWonder(title, userId);
   }
 }

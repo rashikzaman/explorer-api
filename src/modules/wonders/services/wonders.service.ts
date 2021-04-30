@@ -206,6 +206,28 @@ export class WondersService {
     };
   }
 
+  async getCommonWonder(title: string): Promise<any> {
+    const sqlQuery = this.wonderRepository
+      .createQueryBuilder('wonder')
+      .where('wonder.title = :title', { title: title })
+      .where('wonder.visibilityId = :visiblityId', { visiblityId: 2 });
+
+    const wonders = await sqlQuery.getMany();
+    const data = [];
+    const wonderIds = wonders.map((item) => item.id);
+    const resources = await this.resourceService.getResourcesWithWonderIds(
+      wonderIds,
+    );
+
+    data.push({
+      title: title,
+      resources: resources,
+      resourcesCount: resources.length,
+    });
+
+    return data;
+  }
+
   async getOrCreateDefaultWonder(userId: number): Promise<Wonder | undefined> {
     const defaultWonderTitle = this.defaultWonderTitle;
     const wonder = await this.wonderRepository.findOne({

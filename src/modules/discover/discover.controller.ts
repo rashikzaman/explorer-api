@@ -1,6 +1,14 @@
-import { Controller, Get, Param, Query, Request } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Param,
+  Query,
+  Request,
+} from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { UserAuthFind } from '../core/decorators/auth.decorator';
+import Pagination from '../core/interfaces/pagination.interface';
 import { DiscoverService } from './discover.service';
 
 @Controller('discover')
@@ -70,5 +78,22 @@ export class DiscoverController {
   async findWonder(@Request() req, @Param('title') title: string) {
     const userId = req.user.userId;
     return await this.discoverService.findWonder(title, userId);
+  }
+
+  @Get('resources/group/resource-type')
+  @UserAuthFind()
+  async findResourceGroupsByResources(
+    @Request() req,
+    @Query('wonderTitle') wonderTitle: string,
+    @Query()
+    query: Pagination,
+  ) {
+    const userId = req.user.userId;
+    if (!wonderTitle) throw new BadRequestException('Wonder title not found');
+    return await this.discoverService.findResourceGroupsByResources(
+      wonderTitle,
+      userId,
+      query,
+    );
   }
 }

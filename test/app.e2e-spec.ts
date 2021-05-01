@@ -216,17 +216,44 @@ describe('App Api', () => {
   /** Search Ends */
 
   /** Discover Starts */
-
+  let wonderers = null;
+  let resources = null;
+  let wonders = null;
+  let wondererId = null
+  let wonderTitle = null;
   it(`Discover wonderers: if discover wonderers with auth token, it should return 200`, async () => {
     const result = await request(app.getHttpServer())
       .get(`/discover/wonderers`)
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(result.status).toBe(200);
+    wonderers = result.body;
+    if(wonderers.items && wonderers.items[0]){
+      wondererId = wonderers.items[0].id;
+    }
   });
 
-  it(`Discover wonderers: if discover wonderers with auth token, it should return 200`, async () => {
+  it(`Discover wonderers: if discover wonderer with wondererId and auth token, it should return 200`, async () => {
+    //console.log('wondererId', wondererId)
+    const result = await request(app.getHttpServer())
+      .get(`/discover/wonderers/${wondererId}`)
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(200);
+  });
+
+  it(`Discover resources: if discover resources with auth token, it should return 200`, async () => {
     const result = await request(app.getHttpServer())
       .get(`/discover/resources`)
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(200);
+    resources = result.body;
+    if(resources.items && resources.items[0]){
+      resourceId = resources.items[0].id;
+    }    
+  });
+
+  it(`Discover resources: if discover resource with resourceId and auth token, it should return 200`, async () => {
+    const result = await request(app.getHttpServer())
+      .get(`/discover/resources/${resourceId}`)
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(result.status).toBe(200);
   });
@@ -234,6 +261,17 @@ describe('App Api', () => {
   it(`Discover wonders: if discover wonders with auth token, it should return 200`, async () => {
     const result = await request(app.getHttpServer())
       .get(`/discover/wonders`)
+      .set('Authorization', `Bearer ${jwtToken}`);
+    expect(result.status).toBe(200);
+    wonders = result.body;
+    if(wonders && wonders.items[0]){
+      wonderTitle = wonders.items[0].title;
+    }
+  });
+
+  it(`Discover wonders: if discover wonders with wonderTitle and auth token, it should return 200`, async () => {
+    const result = await request(app.getHttpServer())
+      .get(`/discover/wonders/${wonderTitle}`)
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(result.status).toBe(200);
   });

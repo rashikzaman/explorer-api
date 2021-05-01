@@ -16,6 +16,8 @@ import { ResourceHelper } from '../../resources/helpers/resource-helper';
 import { ConfigService } from '@nestjs/config';
 import Collection from '../../core/interfaces/collection/collection.interface';
 import { VisibilityService } from '../../visibility/services/visibility.service';
+import { Resource } from 'src/modules/resources/models/entities/resource.entity';
+import { CommonWonderWithResourceInterface } from '../interfaces/common-wonder-with-resource.interface';
 
 @Injectable()
 export class WondersService {
@@ -176,7 +178,7 @@ export class WondersService {
     const wonders = await sqlQuery.take(pageSize).skip(skippedItems).getMany();
     const totalCount = await sqlQuery.getCount();
 
-    const data = [];
+    const data: Array<CommonWonderWithResourceInterface> = [];
 
     await Promise.all(
       wonders.map(async (wonder) => {
@@ -206,26 +208,30 @@ export class WondersService {
     };
   }
 
-  async getCommonWonder(title: string): Promise<any> {
-    const sqlQuery = this.wonderRepository
-      .createQueryBuilder('wonder')
-      .where('wonder.title = :title', { title: title })
-      .where('wonder.visibilityId = :visiblityId', { visiblityId: 2 });
-
-    const wonders = await sqlQuery.getMany();
-    const data = [];
+  async getCommonWonderWithResources(
+    title: string,
+  ): Promise<CommonWonderWithResourceInterface> {
+    const wonders = await this.getCommonWondersWithTitle(title);
     const wonderIds = wonders.map((item) => item.id);
     const resources = await this.resourceService.getResourcesWithWonderIds(
       wonderIds,
     );
-
-    data.push({
+    const data: CommonWonderWithResourceInterface = {
       title: title,
       resources: resources,
       resourcesCount: resources.length,
-    });
+    };
 
     return data;
+  }
+
+  async getCommonWondersWithTitle(title): Promise<Array<Wonder>> {
+    const sqlQuery = this.wonderRepository
+      .createQueryBuilder('wonder')
+      .where('wonder.title = :title', { title: title })
+      .andWhere('wonder.visibilityId = :visiblityId', { visiblityId: 2 });
+    const wonders = await sqlQuery.getMany();
+    return wonders;
   }
 
   async getOrCreateDefaultWonder(userId: number): Promise<Wonder | undefined> {

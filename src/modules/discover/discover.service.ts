@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import Pagination from '../core/interfaces/pagination.interface';
 import { Resource } from '../resources/models/entities/resource.entity';
 import { ResourcesService } from '../resources/services/resources.service';
 import { User } from '../users/models/entity/user.entity';
@@ -72,7 +73,22 @@ export class DiscoverService {
   }
 
   async findWonder(wonderTitle: string, userId: number) {
-    const wonders = await this.wonderSerivce.getCommonWonder(wonderTitle);
+    const wonders = await this.wonderSerivce.getCommonWonderWithResources(
+      wonderTitle,
+    );
     return wonders;
+  }
+
+  async findResourceGroupsByResources(
+    wonderTitle: string,
+    userId: number,
+    query: Pagination,
+  ) {
+    const wonderWithResources = await this.resourcesService.groupVisibleResourcesByResourceTypeAndWonderTitle(
+      wonderTitle,
+      userId,
+      query,
+    );
+    return wonderWithResources;
   }
 }

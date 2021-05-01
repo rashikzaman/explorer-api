@@ -36,11 +36,13 @@ import { ApiQuery } from '@nestjs/swagger';
 import { UserSavedResourceService } from '../services/user-saved-resource.service';
 import { CreateUserSavedUserResourceDto } from '../models/dto/create-user-saved-resource.dto';
 import { DeleteUserSavedUserResourceDto } from '../models/dto/delete-user-saved-resource.dto';
+import { ResourceTypesService } from '../services/resource-types.service';
 
 @Controller('resources')
 export class ResourcesController {
   constructor(
     private readonly resourcesService: ResourcesService,
+    private readonly resourceTypesService: ResourceTypesService,
     private readonly userSavedResourceService: UserSavedResourceService,
     private s3FileService: S3FileService,
   ) {}
@@ -131,12 +133,13 @@ export class ResourcesController {
   @Get('group/resource-types')
   @ApiQuery({ name: 'wonderId' })
   @ApiQuery({ name: 'pageSize' })
+  @ApiQuery({ name: 'pageNumber' })
   @UserAuthFind()
   async groupResourcesByResourceTypes(
     @Request() req: any,
-    @Query() query: { wonderId: number; pageSize: number },
+    @Query() query: { wonderId: number; pageSize: number; pageNumber: number },
   ) {
-    return this.resourcesService.groupResourcesByResourceType(
+    return this.resourceTypesService.groupUserResourcesByResourceType(
       +req.user.userId,
       query,
     );

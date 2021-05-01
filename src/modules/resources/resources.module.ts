@@ -20,6 +20,7 @@ import { Wonder } from '../wonders/models/entities/wonder.entity';
 import { VisibilityModule } from '../visibility/visibility.module';
 import { WondersModule } from '../wonders/wonders.module';
 import { UserSavedResourceService } from './services/user-saved-resource.service';
+import { PaginationHelper } from '../core/helpers/pagination-helper';
 
 @Module({
   controllers: [
@@ -36,6 +37,7 @@ import { UserSavedResourceService } from './services/user-saved-resource.service
     ResourceSearchService,
     ResourceHelper,
     UserSavedResourceService,
+    PaginationHelper,
   ],
   imports: [
     TypeOrmModule.forFeature([

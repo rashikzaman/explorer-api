@@ -15,7 +15,6 @@ import { Resource } from '../models/entities/resource.entity';
 import { Visibility } from '../../visibility/models/entity/visibility.entity';
 import { ResourceType } from '../models/entities/resource-type.entity';
 import { ConfigService } from '@nestjs/config';
-import { ResourceGroupByResourceType } from '../interfaces/resource-group-by-resourceType';
 import { S3FileService } from '../../aws/s3/services/s3-file.service';
 import { Wonder } from '../../wonders/models/entities/wonder.entity';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';

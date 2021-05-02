@@ -20,10 +20,17 @@ export class Invite {
 
   @ManyToOne(() => User)
   @JoinColumn()
-  user: User;
+  host: User;
 
   @Column()
-  userId: number;
+  hostId: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn()
+  invitee: User;
+
+  @Column()
+  inviteeId: number;
 
   @OneToOne(() => Resource)
   resource: Resource;

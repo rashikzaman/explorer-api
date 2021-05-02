@@ -12,6 +12,7 @@ import {
   UploadedFiles,
   UploadedFile,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
@@ -85,7 +86,7 @@ export class ResourcesController {
   @ApiQuery({ name: 'resourceTypeId' })
   @ApiQuery({ name: 'wonderId' })
   @ApiQuery({ name: 'searchTerm' })
-  findAll(
+  async findAll(
     @Request() req,
     @Query()
     query: {
@@ -101,15 +102,17 @@ export class ResourcesController {
 
   @Get(':id')
   @UserAuthFind()
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.resourcesService.findOne(+id, req.user.userId);
+  async findOne(@Param('id') id: string, @Request() req) {
+    const resource = await this.resourcesService.findOne(+id, req.user.userId);
+    if (!resource) throw new NotFoundException('Resource not found!');
+    return resource;
   }
 
   @Put(':id')
   @UserAuthUpdate()
   @UseInterceptors(resourceFileUploadInterceptor)
   @UsePipes(new JoiValidationPipe(updateResourceSchema))
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateResourceDto: UpdateResourceDto,
     @UploadedFiles() files,

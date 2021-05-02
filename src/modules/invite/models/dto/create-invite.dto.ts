@@ -3,13 +3,16 @@ import { Express } from 'express';
 import { binary } from 'joi';
 
 export class CreateInviteDto {
-  @ApiProperty({ type: Number, description: 'User id', required: false })
-  userId: number;
+  @ApiProperty({ type: Number, description: 'Host id', required: true })
+  hostId: number;
+
+  @ApiProperty({ type: Number, description: 'User id', required: true })
+  inviteeId: number;
 
   @ApiProperty({
     type: Number,
     description: 'Resource id',
-    required: true,
+    required: false,
   })
   resourceId: number;
 

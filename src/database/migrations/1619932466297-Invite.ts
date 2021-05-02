@@ -24,7 +24,11 @@ export class Invite1619932466297 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'userId',
+            name: 'hostId',
+            type: 'int',
+          },
+          {
+            name: 'inviteeId',
             type: 'int',
           },
           {
@@ -41,7 +45,12 @@ export class Invite1619932466297 implements MigrationInterface {
         ],
         foreignKeys: [
           {
-            columnNames: ['userId'],
+            columnNames: ['hostId'],
+            referencedColumnNames: ['id'],
+            referencedTableName: 'user',
+          },
+          {
+            columnNames: ['inviteeId'],
             referencedColumnNames: ['id'],
             referencedTableName: 'user',
           },

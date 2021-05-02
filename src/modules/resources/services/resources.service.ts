@@ -202,7 +202,6 @@ export class ResourcesService {
         : [],
       where: { ...(user && { user: user }) },
     });
-    if (!resource) throw new NotFoundException();
     return this.resourceHelper.prepareResourceAfterFetch(resource);
   }
 

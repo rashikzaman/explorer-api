@@ -34,8 +34,15 @@ export class InviteController {
   @UserAuthCreate()
   @UsePipes(new JoiValidationPipe(createInviteSchema))
   async create(@Body() createInviteDto: CreateInviteDto, @Request() req) {
-    createInviteDto.userId = req.user.userId;
+    createInviteDto.hostId = req.user.userId;
     const result = await this.inviteService.create(createInviteDto);
+    return result;
+  }
+
+  @Delete(':id')
+  @UserAuthDelete()
+  async delete(@Param('id') id: number, @Request() req) {
+    const result = await this.inviteService.delete(+id, req.user.userId);
     return result;
   }
 }

@@ -15,7 +15,7 @@ import { Resource } from '../models/entities/resource.entity';
 import { Visibility } from '../../visibility/models/entity/visibility.entity';
 import { ResourceType } from '../models/entities/resource-type.entity';
 import { ConfigService } from '@nestjs/config';
-import { ResourceGroupByResourceType } from '../interfaces/resource-group-by-resourceType';
+import { ResourceGroupByResourceTypeInterface } from '../interfaces/resource-group-by-resourceType.interface';
 import { S3FileService } from '../../aws/s3/services/s3-file.service';
 import { Wonder } from '../../wonders/models/entities/wonder.entity';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -25,6 +25,9 @@ import Collection from '../../core/interfaces/collection/collection.interface';
 import { VisibilityService } from '../../visibility/services/visibility.service';
 import { WondersService } from '../../wonders/services/wonders.service';
 import { ResourceTypesService } from './resource-types.service';
+import { CommonWonderWithResourceInterface } from '../../wonders/interfaces/common-wonder-with-resource.interface';
+import Pagination from '../../core/interfaces/pagination.interface';
+import { PaginationHelper } from '../../core/helpers/pagination-helper';
 
 @Injectable()
 export class ResourcesService {
@@ -40,6 +43,7 @@ export class ResourcesService {
     @Inject(forwardRef(() => WondersService))
     private readonly wondersService: WondersService,
     private readonly resourcesTypeService: ResourceTypesService,
+    private readonly paginationHelper: PaginationHelper,
   ) {}
 
   async create(
@@ -110,12 +114,14 @@ export class ResourcesService {
     },
   ): Promise<Collection | undefined> {
     const user = await this.getUser(userId);
-    const pageSize = query.pageSize
-      ? query.pageSize
-      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
-    const pageNumber = query.pageNumber ?? 1;
-
-    const skippedItems = (pageNumber - 1) * pageSize;
+    const {
+      pageSize,
+      skippedItems,
+      pageNumber,
+    } = this.paginationHelper.getPageSizeAndNumber({
+      pageSize: query.pageSize,
+      pageNumber: query.pageSize,
+    });
 
     const totalCount = await this.resourceRepository.count({
       where: { ...(user && { user: user }) },
@@ -126,6 +132,10 @@ export class ResourcesService {
       .leftJoinAndSelect('resource.resourceType', 'resoureceType')
       .leftJoinAndSelect('resource.visibility', 'visibility')
       .leftJoinAndSelect('resource.wonder', 'wonder')
+      .loadRelationCountAndMap(
+        'resource.clonedResourcesCount',
+        'resource.clonedResources',
+      )
       .where('resource.userId = :userId', { userId: userId });
 
     if (query.resourceTypeId)
@@ -192,7 +202,6 @@ export class ResourcesService {
         : [],
       where: { ...(user && { user: user }) },
     });
-    if (!resource) throw new NotFoundException();
     return this.resourceHelper.prepareResourceAfterFetch(resource);
   }
 
@@ -280,81 +289,37 @@ export class ResourcesService {
     return result;
   }
 
-  async groupResourcesByResourceType(
+  async groupVisibleResourcesByResourceTypeAndWonderTitle(
+    wonderTitle: string,
     userId: number,
-    query: { wonderId: number; pageSize: number },
-  ): Promise<Array<ResourceGroupByResourceType>> {
+    pagination: Pagination,
+  ): Promise<Array<ResourceGroupByResourceTypeInterface>> {
     const resourceTypes = await this.resourcesTypeService.findAll();
-    const resourceGroupData = [];
-    if (query.wonderId) {
-      const wonder = await this.wondersService.findOne(
-        query.wonderId,
-        userId,
-        false,
-      );
-      if (!wonder) throw new NotFoundException('Wonder not found');
-    }
-
-    await Promise.all(
-      resourceTypes.map(async (item) => {
-        const {
-          resources,
-          resourcesCount,
-        } = await this.getResourcesByResourceType(
-          item,
-          +userId,
-          query.pageSize,
-          query.wonderId,
-        );
-
-        const data: ResourceGroupByResourceType = {
-          id: item.id,
-          type: item.type,
-          resources: resources,
-          resourcesCount: resourcesCount,
+    const wonders = await this.wondersService.getCommonWondersWithTitle(
+      wonderTitle,
+    );
+    const wonderIds = wonders.map((item) => item.id);
+    const resourceGroupData: Array<ResourceGroupByResourceTypeInterface> = await Promise.all(
+      resourceTypes.map(async (type) => {
+        const tempData = {
+          id: type.id,
+          type: type.type,
+          resources: [],
+          resourcesCount: 0,
         };
-        resourceGroupData.push(data);
-        return item;
+        const data: Collection = await this.getPublicAndInvitedOnlyResources(
+          userId,
+          pagination,
+          type.id,
+          null,
+          wonderIds,
+        );
+        tempData.resources = data.items;
+        tempData.resourcesCount = data.totalCount;
+        return tempData;
       }),
     );
-
     return resourceGroupData;
-  }
-
-  async getResourcesByResourceType(
-    resourceType: ResourceType,
-    userId: number,
-    limit = 3,
-    wonderId = null,
-  ) {
-    let sqlQuery = this.resourceRepository
-      .createQueryBuilder('resource')
-      .where('resource.userId = :userId', { userId: userId })
-      .andWhere('resource.resourceTypeId = :resourceTypeId', {
-        resourceTypeId: resourceType.id,
-      });
-
-    if (wonderId)
-      sqlQuery = sqlQuery.andWhere('resource.wonderId = :wonderId', {
-        wonderId: wonderId,
-      });
-
-    const count = await sqlQuery.getCount();
-
-    const resources = await sqlQuery
-      .orderBy({ id: 'DESC' })
-      .take(limit)
-      .getMany();
-
-    resources.map((item) => {
-      item.resourceType = resourceType;
-      return this.resourceHelper.prepareResourceAfterFetch(item);
-    });
-
-    return {
-      resources: resources,
-      resourcesCount: count,
-    };
   }
 
   async getUserLatestResourceByWonderId(
@@ -373,27 +338,48 @@ export class ResourcesService {
 
   async getPublicAndInvitedOnlyResources(
     userId: number,
-    query: {
-      pageSize: number;
-      pageNumber: number;
-    },
+    pagination: Pagination,
+    resourceTypeId: number = null,
+    wonderId: number = null,
+    wonderIds: Array<number> = null,
   ): Promise<Collection | undefined> {
-    const pageSize = query.pageSize
-      ? query.pageSize
-      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
-    const pageNumber = query.pageNumber ?? 1;
-
-    const skippedItems = (pageNumber - 1) * pageSize;
+    const {
+      pageSize,
+      skippedItems,
+      pageNumber,
+    } = this.paginationHelper.getPageSizeAndNumber(pagination);
 
     const publicVisibility = await this.visibilityService.getPublicVisibility();
-    const sqlQuery = await this.resourceRepository
+    let sqlQuery = await this.resourceRepository
       .createQueryBuilder('resource')
       .leftJoinAndSelect('resource.resourceType', 'resoureceType')
       .leftJoinAndSelect('resource.visibility', 'visibility')
       .leftJoinAndSelect('resource.wonder', 'wonder')
+      .loadRelationCountAndMap(
+        'resource.clonedResourcesCount',
+        'resource.clonedResources',
+      )
       .where('resource.visibilityId = :visibilityId', {
         visibilityId: publicVisibility.id,
       });
+
+    if (resourceTypeId) {
+      sqlQuery = sqlQuery.andWhere('resource.resourceTypeId =:resourceTypeId', {
+        resourceTypeId: resourceTypeId,
+      });
+    }
+
+    if (wonderId) {
+      sqlQuery = sqlQuery.andWhere('resource.wonderId =:wonderId', {
+        wonderId: wonderId,
+      });
+    }
+
+    if (wonderIds && wonderIds.length) {
+      sqlQuery = sqlQuery.andWhere('resource.wonderId In (:wonderIds)', {
+        wonderIds: wonderIds,
+      });
+    }
 
     const resources = await sqlQuery
       .take(pageSize)
@@ -420,7 +406,6 @@ export class ResourcesService {
     const resources = await this.resourceRepository.find({
       where: { wonderId: In(wonderIds) },
     });
-
     resources.map((resource) =>
       this.resourceHelper.prepareResourceAfterFetch(resource),
     );

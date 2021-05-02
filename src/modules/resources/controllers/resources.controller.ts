@@ -12,6 +12,7 @@ import {
   UploadedFiles,
   UploadedFile,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
@@ -35,12 +36,13 @@ import { S3FileService } from '../../aws/s3/services/s3-file.service';
 import { ApiQuery } from '@nestjs/swagger';
 import { UserSavedResourceService } from '../services/user-saved-resource.service';
 import { CreateUserSavedUserResourceDto } from '../models/dto/create-user-saved-resource.dto';
-import { DeleteUserSavedUserResourceDto } from '../models/dto/delete-user-saved-resource.dto';
+import { ResourceTypesService } from '../services/resource-types.service';
 
 @Controller('resources')
 export class ResourcesController {
   constructor(
     private readonly resourcesService: ResourcesService,
+    private readonly resourceTypesService: ResourceTypesService,
     private readonly userSavedResourceService: UserSavedResourceService,
     private s3FileService: S3FileService,
   ) {}
@@ -84,7 +86,7 @@ export class ResourcesController {
   @ApiQuery({ name: 'resourceTypeId' })
   @ApiQuery({ name: 'wonderId' })
   @ApiQuery({ name: 'searchTerm' })
-  findAll(
+  async findAll(
     @Request() req,
     @Query()
     query: {
@@ -100,15 +102,17 @@ export class ResourcesController {
 
   @Get(':id')
   @UserAuthFind()
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.resourcesService.findOne(+id, req.user.userId);
+  async findOne(@Param('id') id: string, @Request() req) {
+    const resource = await this.resourcesService.findOne(+id, req.user.userId);
+    if (!resource) throw new NotFoundException('Resource not found!');
+    return resource;
   }
 
   @Put(':id')
   @UserAuthUpdate()
   @UseInterceptors(resourceFileUploadInterceptor)
   @UsePipes(new JoiValidationPipe(updateResourceSchema))
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateResourceDto: UpdateResourceDto,
     @UploadedFiles() files,
@@ -131,12 +135,13 @@ export class ResourcesController {
   @Get('group/resource-types')
   @ApiQuery({ name: 'wonderId' })
   @ApiQuery({ name: 'pageSize' })
+  @ApiQuery({ name: 'pageNumber' })
   @UserAuthFind()
   async groupResourcesByResourceTypes(
     @Request() req: any,
-    @Query() query: { wonderId: number; pageSize: number },
+    @Query() query: { wonderId: number; pageSize: number; pageNumber: number },
   ) {
-    return this.resourcesService.groupResourcesByResourceType(
+    return this.resourceTypesService.groupUserResourcesByResourceType(
       +req.user.userId,
       query,
     );

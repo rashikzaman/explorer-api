@@ -21,7 +21,7 @@ export class UsersService {
     private userAuthService: UsersAuthService,
   ) {}
 
-  async findOne(id: string): Promise<User | undefined> {
+  async findOne(id: number): Promise<User | undefined> {
     return this.usersRepository.findOne(id, { relations: ['userAttribute'] });
   }
 
@@ -107,5 +107,18 @@ export class UsersService {
       pageSize: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
       totalCount: totalCount,
     };
+  }
+
+  async getPublicUser(userId: number): Promise<User | undefined> {
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.id = :id', { id: userId })
+      .leftJoinAndSelect('user.userAttribute', 'userAttribute')
+      .andWhere('user.visibilityId = :visibilityId', {
+        visibilityId: publicVisibility.id,
+      })
+      .getOne();
+    return user;
   }
 }

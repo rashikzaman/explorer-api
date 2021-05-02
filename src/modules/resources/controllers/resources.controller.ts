@@ -35,7 +35,6 @@ import { S3FileService } from '../../aws/s3/services/s3-file.service';
 import { ApiQuery } from '@nestjs/swagger';
 import { UserSavedResourceService } from '../services/user-saved-resource.service';
 import { CreateUserSavedUserResourceDto } from '../models/dto/create-user-saved-resource.dto';
-import { DeleteUserSavedUserResourceDto } from '../models/dto/delete-user-saved-resource.dto';
 import { ResourceTypesService } from '../services/resource-types.service';
 
 @Controller('resources')

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   Get,
+  NotFoundException,
   Param,
   Query,
   Request,
@@ -55,7 +56,9 @@ export class DiscoverController {
   @UserAuthFind()
   async findResource(@Request() req, @Param('id') id: string) {
     const userId = req.user.userId;
-    return await this.discoverService.findResource(+id, +userId);
+    const resource = await this.discoverService.findResource(+id, +userId);
+    if (!resource) throw new NotFoundException('Resource not found!');
+    return resource;
   }
 
   @Get('wonders')

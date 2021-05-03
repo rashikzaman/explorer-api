@@ -28,6 +28,7 @@ import { ResourceTypesService } from './resource-types.service';
 import { CommonWonderWithResourceInterface } from '../../wonders/interfaces/common-wonder-with-resource.interface';
 import Pagination from '../../core/interfaces/pagination.interface';
 import { PaginationHelper } from '../../core/helpers/pagination-helper';
+import { Invite } from 'src/modules/invite/models/entity/invite.entity';
 
 @Injectable()
 export class ResourcesService {
@@ -192,16 +193,55 @@ export class ResourcesService {
    */
   async findOne(
     id: number,
-    userId: string = null,
+    userId: number = null,
     withRelation = true,
+    publicPrivateVisibility = false,
   ): Promise<Resource | any> {
     const user = await this.getUser(userId);
-    const resource = await this.resourceRepository.findOne(id, {
-      relations: withRelation
-        ? ['resourceType', 'visibility', 'user', 'originalResource']
-        : [],
-      where: { ...(user && { user: user }) },
-    });
+
+    let sqlQuery = this.resourceRepository
+      .createQueryBuilder('resource')
+      .where('resource.id =:id', { id: id });
+
+    if (user && !publicPrivateVisibility) {
+      sqlQuery = sqlQuery.andWhere('resource.userId =:userId', {
+        userId: userId,
+      });
+    } else if (user && publicPrivateVisibility) {
+      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
+
+      sqlQuery = sqlQuery
+        .leftJoin(Invite, 'invite', 'invite.resourceId =:resourceId', {
+          resourceId: id, //join invite table
+        })
+        .andWhere(
+          new Brackets((qb) => {
+            qb.where('invite.inviteeId =:inviteeId', {
+              inviteeId: userId, //check if user has invitation for this resource
+            })
+              .orWhere('resource.visibilityId =:visibilityId', {
+                visibilityId: publicVisibility.id, //or check if this is a public resource
+              })
+              .orWhere('resource.userId = :userId', {
+                userId: userId, //or check if user owns this resource
+              });
+          }),
+        );
+    }
+
+    if (withRelation) {
+      sqlQuery = sqlQuery
+        .leftJoinAndSelect('resource.resourceType', 'resoureceType')
+        .leftJoinAndSelect('resource.visibility', 'visibility')
+        .leftJoinAndSelect('resource.wonder', 'wonder')
+        .loadRelationCountAndMap(
+          'resource.clonedResourcesCount',
+          'resource.clonedResources',
+        );
+    }
+
+    const resource = await sqlQuery.getOne();
+
     return this.resourceHelper.prepareResourceAfterFetch(resource);
   }
 

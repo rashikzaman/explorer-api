@@ -52,13 +52,15 @@ export class DiscoverService {
   async findResource(resourceId: number, userId: number): Promise<Resource> {
     const resource: Resource = await this.resourcesService.findOne(
       resourceId,
-      null,
+      userId,
+      true,
       true,
     );
-    if (resource.userId === userId) return resource;
-    const publicVisibility = await this.visibilityService.getPublicVisibility();
-    if (resource.visibilityId === publicVisibility.id) return resource;
-    else throw new BadRequestException('This is not a public resource');
+    // if (resource.userId === userId) return resource;
+    // const publicVisibility = await this.visibilityService.getPublicVisibility();
+    // if (resource.visibilityId === publicVisibility.id) return resource;
+    // else throw new BadRequestException('This is not a public resource');
+    return resource;
   }
 
   async findWonders(

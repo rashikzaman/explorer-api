@@ -46,7 +46,7 @@ export class WondersController {
     @UploadedFile() file,
   ) {
     const coverPhotoUrl = file ? file.path.replace(/\\/g, '/') : null;
-    createWonderDto.userId = req.user.userId;
+    createWonderDto.userId = req.user.id;
     createWonderDto.coverPhoto = coverPhotoUrl;
     return this.wondersService.create(createWonderDto);
   }
@@ -60,13 +60,21 @@ export class WondersController {
     @Query()
     query: { pageSize: number; pageNumber: number },
   ) {
-    return this.wondersService.findAll(req.user.userId, query);
+    return this.wondersService.findAll(
+      {
+        pageSize: query.pageSize,
+        pageNumber: query.pageNumber,
+      },
+      {
+        userId: req.user.id,
+      },
+    );
   }
 
   @Get(':id')
   @UserAuthFind()
   findOne(@Param('id') id: string, @Request() req) {
-    return this.wondersService.findOne(+id, req.user.userId);
+    return this.wondersService.findOne(+id, { userId: req.user.id });
   }
 
   @Put(':id')
@@ -78,7 +86,7 @@ export class WondersController {
     @Body() updateWonderDto: UpdateWonderDto,
     @Request() req,
   ) {
-    updateWonderDto.userId = req.user.userId;
+    updateWonderDto.userId = req.user.id;
     return this.wondersService.update(+id, updateWonderDto);
   }
 
@@ -86,7 +94,7 @@ export class WondersController {
   @UserAuthDelete()
   async remove(@Param('id') id: string, @Request() req) {
     try {
-      const result = await this.wondersService.remove(+id, req.user.userId);
+      const result = await this.wondersService.remove(+id, req.user.id);
       if (result) return { message: 'Wonder deleted', status: 'success' };
     } catch (e) {
       return { message: "Can't delete Wonder", status: 'error' };

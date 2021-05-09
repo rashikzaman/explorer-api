@@ -8,6 +8,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
+import { JwtOptionalAuthGuard } from 'src/modules/auth/guards/jw-optional-auth.guard';
 
 export function UserAuthCreate() {
   return applyDecorators(
@@ -59,6 +60,24 @@ export function UserAuthDelete() {
     ApiBearerAuth(),
     ApiOkResponse(),
     ApiUnauthorizedResponse(),
+    ApiNotFoundResponse(),
+  );
+}
+
+export function UserOptionalAuthFindAll() {
+  return applyDecorators(
+    HttpCode(200),
+    UseGuards(JwtOptionalAuthGuard),
+    ApiOkResponse(),
+    ApiNotFoundResponse(),
+  );
+}
+
+export function UserOptionalAuthFind() {
+  return applyDecorators(
+    HttpCode(200),
+    UseGuards(JwtOptionalAuthGuard),
+    ApiOkResponse(),
     ApiNotFoundResponse(),
   );
 }

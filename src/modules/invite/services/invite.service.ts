@@ -11,10 +11,9 @@ import { Repository } from 'typeorm';
 import { Invite } from '../models/entity/invite.entity';
 import { ResourcesService } from '../../resources/services/resources.service';
 import { CreateInviteDto } from '../models/dto/create-invite.dto';
-import { Resource } from 'src/modules/resources/models/entities/resource.entity';
-import { Wonder } from 'src/modules/wonders/models/entities/wonder.entity';
-import { throwError } from 'rxjs';
-import { UsersService } from 'src/modules/users/services/users.service';
+import { Resource } from '../../resources/models/entities/resource.entity';
+import { Wonder } from '../../wonders/models/entities/wonder.entity';
+import { UsersService } from '../../users/services/users.service';
 
 @Injectable()
 export class InviteService {
@@ -41,22 +40,20 @@ export class InviteService {
     if (!invitee) throw new BadRequestException('Invitee not found!');
 
     if (resourceId) {
-      const resource: Resource = await this.resourcesService.findOne(
-        resourceId,
-        null,
-        false,
-      );
+      const resource: Resource = await this.resourcesService.findOne({
+        resourceId: resourceId,
+        withRelation: false,
+      });
       if (!resource) throw new NotFoundException('Resource not found!');
       if (resource.userId !== hostId)
         throw new BadRequestException("User doesn't own this resource!");
     }
 
     if (wonderId) {
-      const wonder: Wonder = await this.wondersService.findOne(
-        wonderId,
-        null,
-        false,
-      );
+      const wonder: Wonder = await this.wondersService.findOne(wonderId, {
+        userId: null,
+        withRelations: false,
+      });
       if (!wonder) throw new NotFoundException('Wonder not found!');
       if (wonder.userId !== hostId)
         throw new BadRequestException("User doesn't own this wonder!");

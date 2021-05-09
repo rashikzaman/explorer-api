@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { ResourceSearchService } from '../resources/services/resource-search.service';
+import Collection from '../core/interfaces/collection/collection.interface';
+import Pagination from '../core/interfaces/pagination.interface';
 import { ResourcesService } from '../resources/services/resources.service';
-import { WonderSearchService } from '../wonders/services/wonder-search.service';
 import { WondersService } from '../wonders/services/wonders.service';
 import { CreateSearchDto } from './dto/create-search.dto';
 import { UpdateSearchDto } from './dto/update-search.dto';
@@ -12,29 +12,29 @@ export class SearchService {
   constructor(
     private resourceService: ResourcesService,
     private wonderService: WondersService,
-    private resourceSearchService: ResourceSearchService,
-    private wonderResourceService: WonderSearchService,
   ) {}
 
   async search(
     searchTerm: string,
     userId = null,
     forProfile = false,
-    pageLimit = 12,
+    pagination: Pagination,
   ): Promise<SearchCollection> {
-    const resources = await this.resourceSearchService.searchResources(
-      searchTerm,
-      userId,
-      forProfile,
-      pageLimit,
+    const resourcesData: Collection = await this.resourceService.findAll(
+      pagination,
+      {
+        searchTerm: searchTerm,
+        checkPublicPrivateVisibility: !forProfile,
+        userId: userId,
+      },
     );
-    const wonders = await this.wonderResourceService.searchWonders(
-      searchTerm,
-      userId,
-      forProfile,
-      pageLimit,
-    );
-
+    const resources = resourcesData.items;
+    const wondersData = await this.wonderService.findAll(pagination, {
+      searchTerm: searchTerm,
+      userId: userId,
+      checkPublicPrivateVisibility: !forProfile,
+    });
+    const wonders = wondersData.items;
     return {
       resources: resources,
       wonders: wonders,

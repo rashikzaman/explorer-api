@@ -32,13 +32,13 @@ export class Invite {
   @Column()
   inviteeId: number;
 
-  @OneToOne(() => Resource)
+  @ManyToOne(() => Resource, (resource) => resource.invites)
   resource: Resource;
 
   @Column()
   resourceId: number;
 
-  @OneToOne(() => Wonder)
+  @ManyToOne(() => Wonder, (wonder) => wonder.invites)
   wonder: Wonder;
 
   @Column()

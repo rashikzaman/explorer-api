@@ -20,7 +20,7 @@ export class ResourceTypesService {
     @InjectRepository(Resource)
     private readonly resourceRepository: Repository<Resource>,
     private readonly resourceHelper: ResourceHelper,
-  ) { }
+  ) {}
 
   async findAll(): Promise<ResourceType[] | undefined> {
     const result = await this.resourceTypeRepository.find({});
@@ -39,11 +39,9 @@ export class ResourceTypesService {
     const resourceTypes = await this.findAll();
     const resourceGroupData = [];
     if (query.wonderId) {
-      const wonder = await this.wondersService.findOne(
-        query.wonderId,
-        userId,
-        false,
-      );
+      const wonder = await this.wondersService.findOne(query.wonderId, {
+        userId: userId,
+      });
       if (!wonder) throw new NotFoundException('Wonder not found');
     }
 

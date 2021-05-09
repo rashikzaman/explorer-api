@@ -9,9 +9,11 @@ export class PaginationHelper {
     const pageSize = paginationQuery.pageSize
       ? paginationQuery.pageSize
       : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
-    const pageNumber = paginationQuery.pageNumber ?? 1;
-
+    const pageNumber = isNaN(paginationQuery.pageNumber)
+      ? 1
+      : paginationQuery.pageNumber;
     const skippedItems: number = (pageNumber - 1) * pageSize;
+
     const pagination: Pagination = {
       pageSize: pageSize,
       pageNumber: pageNumber,

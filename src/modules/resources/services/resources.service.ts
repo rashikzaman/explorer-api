@@ -160,7 +160,6 @@ export class ResourcesService {
     if (user && !checkPublicPrivateVisibility) {
       sqlBuilder = sqlBuilder.setUserId(userId);
     } else if (user && checkPublicPrivateVisibility) {
-      console.log(wonderIds);
       const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
       sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
         null,
@@ -356,14 +355,21 @@ export class ResourcesService {
     return resourceGroupData;
   }
 
-  async getUserLatestResourceByWonderId(
+  async getUserLatestResourceWithImageByWonderId(
     userId: number,
     wonderId: number,
   ): Promise<Resource> {
     const resource = await this.resourceRepository
       .createQueryBuilder('resource')
       .where('resource.userId = :userId', { userId: userId })
-      .where('resource.wonderId = :wonderId', { wonderId: wonderId })
+      .andWhere('resource.wonderId = :wonderId', { wonderId: wonderId })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('resource.imageLink is not null').orWhere(
+            'resource.urlImage is not null',
+          );
+        }),
+      )
       .orderBy('resource.id', 'DESC')
       .getOne();
 

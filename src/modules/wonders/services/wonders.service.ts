@@ -188,16 +188,30 @@ export class WondersService {
     return result;
   }
 
-  async addCoverPhotoOfWonder(wonderId: number, userId: number) {
-    const resource = await this.resourceService.getUserLatestResourceByWonderId(
-      +userId,
-      wonderId,
-    );
+  async addCoverPhotoOfWonder(
+    wonderId: number,
+    userId: number,
+    resources: Array<Resource> = null,
+  ) {
     let coverPhotoUrl = null;
-    if (resource) {
-      if (resource.imageLink)
-        coverPhotoUrl = this.resourceHelper.appendDomainToImageLink(resource);
-      else if (resource.urlImage) coverPhotoUrl = resource.urlImage;
+
+    if (resources) {
+      resources.some((item) => {
+        if (item.imageLink || item.urlImage) {
+          coverPhotoUrl = item.imageLink ?? item.urlImage;
+          return true;
+        }
+      });
+    } else {
+      const resource = await this.resourceService.getUserLatestResourceWithImageByWonderId(
+        +userId,
+        wonderId,
+      );
+      if (resource) {
+        if (resource.imageLink)
+          coverPhotoUrl = this.resourceHelper.appendDomainToImageLink(resource);
+        else if (resource.urlImage) coverPhotoUrl = resource.urlImage;
+      }
     }
     return coverPhotoUrl;
   }
@@ -254,11 +268,19 @@ export class WondersService {
 
         const resources = resourcesData.items;
 
+        wonder.coverPhotoUrl = await this.addCoverPhotoOfWonder(
+          null,
+          null,
+          resources,
+        );
+
         data.push({
           title: wonder.title,
+          coverPhotoUrl: wonder.coverPhotoUrl,
           resources: resources,
           resourcesCount: resources.length,
         });
+        return wonder;
       }),
     );
 
@@ -277,7 +299,7 @@ export class WondersService {
   ): Promise<CommonWonderWithResourceInterface> {
     const wonders = await this.getCommonWondersWithTitle(title, userId);
     const wonderIds = wonders.map((item) => item.id);
-    const resources = await this.resourceService.findAll(
+    const resourcesData = await this.resourceService.findAll(
       { pageNumber: null, pageSize: null },
       {
         wonderIds: wonderIds,
@@ -286,10 +308,19 @@ export class WondersService {
         userId: userId,
       },
     );
+    const resources = resourcesData.items;
+
+    const coverPhotoUrl = await this.addCoverPhotoOfWonder(
+      null,
+      null,
+      resources,
+    );
+
     const data: CommonWonderWithResourceInterface = {
       title: title,
-      resources: resources.items,
-      resourcesCount: resources.items.length,
+      coverPhotoUrl: coverPhotoUrl,
+      resources: resources,
+      resourcesCount: resources.length,
     };
 
     return data;

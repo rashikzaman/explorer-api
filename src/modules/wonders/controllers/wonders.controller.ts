@@ -11,6 +11,7 @@ import {
   Request,
   UploadedFile,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { WondersService } from '../services/wonders.service';
 import { CreateWonderDto } from '../models/dto/create-wonder.dto';
@@ -73,8 +74,12 @@ export class WondersController {
 
   @Get(':id')
   @UserAuthFind()
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.wondersService.findOne(+id, { userId: req.user.id });
+  async findOne(@Param('id') id: string, @Request() req) {
+    const wonder = await this.wondersService.findOne(+id, {
+      userId: req.user.id,
+    });
+    if (!wonder) throw new NotFoundException('Wonder not found');
+    return wonder;
   }
 
   @Put(':id')

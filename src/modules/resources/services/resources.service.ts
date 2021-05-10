@@ -160,7 +160,6 @@ export class ResourcesService {
     if (user && !checkPublicPrivateVisibility) {
       sqlBuilder = sqlBuilder.setUserId(userId);
     } else if (user && checkPublicPrivateVisibility) {
-      console.log(wonderIds);
       const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
       sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
         null,

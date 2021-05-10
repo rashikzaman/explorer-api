@@ -314,7 +314,6 @@ export class WondersService {
       );
 
     const wonders = await sqlBuilder.findMany();
-    console.log(wonders);
     return wonders;
   }
 

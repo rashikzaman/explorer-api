@@ -203,6 +203,7 @@ export class WondersService {
   }
 
   async getAllCommonWonders(
+    userId: number = null,
     pagination: Pagination,
   ): Promise<Collection | undefined> {
     const {
@@ -213,29 +214,42 @@ export class WondersService {
 
     const publicVisibility = await this.visibilityService.getPublicVisibility();
 
-    const sqlQuery = this.wonderRepository
-      .createQueryBuilder('wonder')
-      .groupBy('wonder.title')
-      .where('wonder.visibilityId = :visiblityId', {
-        visiblityId: publicVisibility.id,
-      })
-      .orderBy('wonder.title', 'ASC');
+    let sqlBuilder = this.getSqlBuilder();
+    sqlBuilder = sqlBuilder.setGroupBy('title').setOrderBy('title', 'ASC');
 
-    const wonders = await sqlQuery.take(pageSize).skip(skippedItems).getMany();
-    const totalCount = await sqlQuery.getCount();
+    if (!userId)
+      sqlBuilder = sqlBuilder.setPublicVisibility(publicVisibility.id);
+    else
+      sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
+        null,
+        userId,
+        publicVisibility.id,
+      );
+
+    const wonders = await sqlBuilder
+      .setTake(pageSize)
+      .setSkip(skippedItems)
+      .findMany();
+
+    //https://github.com/typeorm/typeorm/issues/544
+    const totalRows = await sqlBuilder
+      .getQueryBuilder()
+      .select('COUNT(wonder.title) AS cnt')
+      .getRawMany();
+
+    const totalCount = totalRows.length;
 
     const data: Array<CommonWonderWithResourceInterface> = [];
-
     await Promise.all(
       wonders.map(async (wonder) => {
         const wonders = await this.wonderRepository.find({
           title: wonder.title,
-          visibilityId: 2,
         });
         const wonderIds = wonders.map((item) => item.id);
         const resourcesData = await this.resourceService.findAll(pagination, {
           wonderIds: wonderIds,
           checkPublicPrivateVisibility: true,
+          userId: userId,
         });
 
         const resources = resourcesData.items;
@@ -259,8 +273,9 @@ export class WondersService {
 
   async getCommonWonderWithResources(
     title: string,
+    userId: number = null,
   ): Promise<CommonWonderWithResourceInterface> {
-    const wonders = await this.getCommonWondersWithTitle(title);
+    const wonders = await this.getCommonWondersWithTitle(title, userId);
     const wonderIds = wonders.map((item) => item.id);
     const resources = await this.resourceService.findAll(
       { pageNumber: null, pageSize: null },
@@ -268,6 +283,7 @@ export class WondersService {
         wonderIds: wonderIds,
         checkPublicPrivateVisibility: true,
         withRelation: true,
+        userId: userId,
       },
     );
     const data: CommonWonderWithResourceInterface = {
@@ -279,12 +295,26 @@ export class WondersService {
     return data;
   }
 
-  async getCommonWondersWithTitle(title): Promise<Array<Wonder>> {
-    const sqlQuery = this.wonderRepository
-      .createQueryBuilder('wonder')
-      .where('wonder.title = :title', { title: title })
-      .andWhere('wonder.visibilityId = :visiblityId', { visiblityId: 2 });
-    const wonders = await sqlQuery.getMany();
+  async getCommonWondersWithTitle(
+    title,
+    userId: number = null,
+  ): Promise<Array<Wonder>> {
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
+
+    let sqlBuilder = this.getSqlBuilder();
+    sqlBuilder = sqlBuilder.setParam('title', title);
+
+    if (!userId)
+      sqlBuilder = sqlBuilder.setPublicVisibility(publicVisibility.id);
+    else
+      sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
+        null,
+        userId,
+        publicVisibility.id,
+      );
+
+    const wonders = await sqlBuilder.findMany();
+    console.log(wonders);
     return wonders;
   }
 

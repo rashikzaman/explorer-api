@@ -6,7 +6,7 @@ export class CreateInviteDto {
   @ApiProperty({ type: Number, description: 'Host id', required: true })
   hostId: number;
 
-  @ApiProperty({ type: Number, description: 'User id', required: true })
+  @ApiProperty({ type: Number, description: 'Invitee id', required: true })
   inviteeId: number;
 
   @ApiProperty({

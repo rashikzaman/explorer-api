@@ -78,13 +78,14 @@ export class DiscoverService {
       pageNumber: number;
     },
   ) {
-    const wonders = await this.wonderSerivce.getAllCommonWonders(query);
+    const wonders = await this.wonderSerivce.getAllCommonWonders(userId, query);
     return wonders;
   }
 
   async findWonder(wonderTitle: string, userId: number) {
     const wonders = await this.wonderSerivce.getCommonWonderWithResources(
       wonderTitle,
+      userId,
     );
     return wonders;
   }

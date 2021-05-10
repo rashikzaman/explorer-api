@@ -8,7 +8,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
-import { JwtOptionalAuthGuard } from 'src/modules/auth/guards/jw-optional-auth.guard';
+import { JwtOptionalAuthGuard } from '../../auth/guards/jw-optional-auth.guard';
 
 export function UserAuthCreate() {
   return applyDecorators(

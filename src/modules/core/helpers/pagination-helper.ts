@@ -12,7 +12,7 @@ export class PaginationHelper {
     const pageNumber = isNaN(paginationQuery.pageNumber)
       ? 1
       : paginationQuery.pageNumber;
-    const skippedItems: number = (pageNumber - 1) * pageSize;
+    const skippedItems: number = pageNumber ? (pageNumber - 1) * pageSize : 0;
 
     const pagination: Pagination = {
       pageSize: pageSize,

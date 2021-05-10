@@ -138,20 +138,6 @@ export class ResourcesService {
     this.resourceQuery = new ResourceQuery(this.resourceRepository);
     let sqlBuilder = this.resourceQuery.setQueryBuilder();
 
-    if (user && !checkPublicPrivateVisibility) {
-      sqlBuilder = sqlBuilder.setUserId(userId);
-    } else if (user && checkPublicPrivateVisibility) {
-      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
-      sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
-        null,
-        userId,
-        publicVisibility.id,
-      );
-    } else if (!user && checkPublicPrivateVisibility) {
-      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
-      sqlBuilder = sqlBuilder.setPublicVisibility(publicVisibility.id);
-    }
-
     if (resourceTypeId) {
       sqlBuilder = sqlBuilder.setResourceTypeId(resourceTypeId);
     }
@@ -169,6 +155,21 @@ export class ResourcesService {
 
     if (withRelation) {
       sqlBuilder = sqlBuilder.setRelations();
+    }
+
+    if (user && !checkPublicPrivateVisibility) {
+      sqlBuilder = sqlBuilder.setUserId(userId);
+    } else if (user && checkPublicPrivateVisibility) {
+      console.log(wonderIds);
+      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
+      sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
+        null,
+        userId,
+        publicVisibility.id,
+      );
+    } else if (!user && checkPublicPrivateVisibility) {
+      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
+      sqlBuilder = sqlBuilder.setPublicVisibility(publicVisibility.id);
     }
 
     const totalCount = await sqlBuilder.getQueryBuilder().getCount();

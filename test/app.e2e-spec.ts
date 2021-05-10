@@ -233,7 +233,6 @@ describe('App Api', () => {
   });
 
   it(`Discover wonderers: if discover wonderer with wondererId and auth token, it should return 200`, async () => {
-    //console.log('wondererId', wondererId)
     const result = await request(app.getHttpServer())
       .get(`/discover/wonderers/${wondererId}`)
       .set('Authorization', `Bearer ${jwtToken}`);

@@ -12,7 +12,7 @@ import {
 
 import { User } from '../../../users/models/entity/user.entity';
 import { Visibility } from '../../../visibility/models/entity/visibility.entity';
-import { Invite } from 'src/modules/invite/models/entity/invite.entity';
+import { Invite } from '../../../invite/models/entity/invite.entity';
 
 @Entity()
 export class Wonder {

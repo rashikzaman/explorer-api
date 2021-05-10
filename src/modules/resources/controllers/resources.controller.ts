@@ -159,7 +159,6 @@ export class ResourcesController {
   }
 
   @Post(':id/save')
-  @ApiQuery({ name: 'resourceId' })
   @ApiQuery({ name: 'userId' })
   @UserAuthCreate()
   async saveResource(

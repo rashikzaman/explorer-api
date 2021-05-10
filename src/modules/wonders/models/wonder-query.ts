@@ -103,6 +103,24 @@ export class WonderQuery {
     return this;
   }
 
+  setParam(paramName, paramValue): this {
+    this.queryBuilder = this.queryBuilder.andWhere(
+      `wonder.${paramName} =:paramValue`,
+      { paramValue: paramValue },
+    );
+    return this;
+  }
+
+  setGroupBy(term: string): this {
+    this.queryBuilder = this.queryBuilder.groupBy(`wonder.${term}`);
+    return this;
+  }
+
+  setOrderBy(term: string, direction: 'ASC' | 'DESC'): this {
+    this.queryBuilder = this.queryBuilder.orderBy(`wonder.${term}`, direction);
+    return this;
+  }
+
   setTake(take: number): this {
     this.queryBuilder = this.queryBuilder.take(take);
     return this;

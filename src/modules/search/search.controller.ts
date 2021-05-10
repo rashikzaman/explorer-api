@@ -1,5 +1,8 @@
 import { Controller, Get, Query, Request } from '@nestjs/common';
-import { UserAuthFind } from '../core/decorators/auth.decorator';
+import {
+  UserAuthFind,
+  UserOptionalAuthFind,
+} from '../core/decorators/auth.decorator';
 import { SearchService } from './search.service';
 
 @Controller('search')
@@ -7,6 +10,7 @@ export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 
   @Get()
+  @UserOptionalAuthFind()
   search(
     @Query()
     query: {
@@ -14,8 +18,9 @@ export class SearchController {
       pageNumber: number;
       term: string;
     },
+    @Request() req,
   ) {
-    return this.searchService.search(query.term, false, false, {
+    return this.searchService.search(query.term, req.user.id, false, {
       pageNumber: +query.pageNumber,
       pageSize: +query.pageNumber,
     });

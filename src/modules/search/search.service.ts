@@ -20,11 +20,15 @@ export class SearchService {
     forProfile = false,
     pagination: Pagination,
   ): Promise<SearchCollection> {
+    let checkPublicPrivateVisibility = false;
+    if (!forProfile && userId) checkPublicPrivateVisibility = true; //if user is searching with bearer token
+    if (!userId) checkPublicPrivateVisibility = true;
+
     const resourcesData: Collection = await this.resourceService.findAll(
       pagination,
       {
         searchTerm: searchTerm,
-        checkPublicPrivateVisibility: !forProfile,
+        checkPublicPrivateVisibility: checkPublicPrivateVisibility,
         userId: userId,
       },
     );
@@ -32,7 +36,8 @@ export class SearchService {
     const wondersData = await this.wonderService.findAll(pagination, {
       searchTerm: searchTerm,
       userId: userId,
-      checkPublicPrivateVisibility: !forProfile,
+      checkPublicPrivateVisibility: checkPublicPrivateVisibility,
+      withRelations: false,
     });
     const wonders = wondersData.items;
     return {

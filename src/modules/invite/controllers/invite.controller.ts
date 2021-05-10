@@ -1,26 +1,17 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Put,
   Param,
   Delete,
-  UseInterceptors,
   Request,
   UsePipes,
-  UploadedFiles,
-  UploadedFile,
-  Query,
 } from '@nestjs/common';
 import { JoiValidationPipe } from '../../../validation.pipe';
 import { createInviteSchema } from '../validation-schemas/schemas';
 import {
   UserAuthCreate,
   UserAuthDelete,
-  UserAuthFind,
-  UserAuthUpdate,
-  UserAuthFindAll,
 } from '../../core/decorators/auth.decorator';
 import { ApiQuery } from '@nestjs/swagger';
 import { CreateInviteDto } from '../models/dto/create-invite.dto';

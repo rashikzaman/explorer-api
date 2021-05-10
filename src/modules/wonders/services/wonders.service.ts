@@ -16,12 +16,17 @@ import { ResourceHelper } from '../../resources/helpers/resource-helper';
 import { ConfigService } from '@nestjs/config';
 import Collection from '../../core/interfaces/collection/collection.interface';
 import { VisibilityService } from '../../visibility/services/visibility.service';
-import { Resource } from 'src/modules/resources/models/entities/resource.entity';
+import { Resource } from '../../resources/models/entities/resource.entity';
 import { CommonWonderWithResourceInterface } from '../interfaces/common-wonder-with-resource.interface';
+import Pagination from 'src/modules/core/interfaces/pagination.interface';
+import { PaginationHelper } from '../../core/helpers/pagination-helper';
+import { WonderQuery } from '../models/wonder-query';
+import { Visibility } from '../../visibility/models/entity/visibility.entity';
 
 @Injectable()
 export class WondersService {
   private defaultWonderTitle;
+  private wonderQuery: WonderQuery;
   constructor(
     @InjectRepository(Wonder)
     private readonly wonderRepository: Repository<Wonder>,
@@ -31,6 +36,7 @@ export class WondersService {
     private readonly resourceHelper: ResourceHelper,
     private readonly configService: ConfigService,
     private readonly visibilityService: VisibilityService,
+    private readonly paginationHelper: PaginationHelper,
   ) {
     this.defaultWonderTitle = 'Other';
   }
@@ -50,26 +56,59 @@ export class WondersService {
   }
 
   async findAll(
-    userId: string,
-    query: { pageSize: number; pageNumber: number },
+    pagination: Pagination,
+    query: {
+      userId?: number;
+      searchTerm?: string;
+      withRelations?: boolean;
+      checkPublicPrivateVisibility?: boolean;
+    },
   ): Promise<Collection | undefined> {
-    const pageSize = query.pageSize
-      ? query.pageSize
-      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
-    const pageNumber = query.pageNumber ?? 1;
+    const {
+      pageSize,
+      skippedItems,
+      pageNumber,
+    } = this.paginationHelper.getPageSizeAndNumber(pagination);
 
-    const skippedItems = (pageNumber - 1) * pageSize;
+    const {
+      userId,
+      searchTerm,
+      withRelations = true,
+      checkPublicPrivateVisibility = false,
+    } = query;
 
-    let sqlQuery = this.wonderRepository
-      .createQueryBuilder('wonder')
-      .where('wonder.userId = :userId', { userId: userId });
+    let sqlBuilder = this.getSqlBuilder();
 
-    sqlQuery = sqlQuery
-      .leftJoinAndSelect('wonder.resources', 'resources')
-      .loadRelationCountAndMap('wonder.resourcesCount', 'wonder.resources');
+    const user = await this.getUser(userId);
 
-    const totalCount = await sqlQuery.getCount();
-    const wonders = await sqlQuery.take(pageSize).skip(skippedItems).getMany();
+    if (user && !checkPublicPrivateVisibility) {
+      sqlBuilder = sqlBuilder.setUserId(userId);
+    } else if (user && checkPublicPrivateVisibility) {
+      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
+      sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
+        null,
+        userId,
+        publicVisibility.id,
+      );
+    } else if (!user) {
+      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
+      sqlBuilder = sqlBuilder.setPublicVisibility(publicVisibility.id);
+    }
+
+    if (withRelations) {
+      sqlBuilder = sqlBuilder.setRelations();
+    }
+
+    if (searchTerm) {
+      sqlBuilder = sqlBuilder.setSearchTerm(searchTerm);
+    }
+
+    const totalCount = await sqlBuilder.getQueryBuilder().getCount();
+
+    if (pageSize) sqlBuilder = sqlBuilder.setTake(pageSize);
+    if (skippedItems) sqlBuilder = sqlBuilder.setSkip(skippedItems);
+
+    const wonders = await sqlBuilder.findMany();
     await Promise.all(
       wonders.map(async (wonder) => {
         wonder.coverPhotoUrl = await this.addCoverPhotoOfWonder(
@@ -90,21 +129,26 @@ export class WondersService {
 
   async findOne(
     id: number,
-    userId: number,
-    withRelation = true,
+    query: {
+      userId?: number;
+      withRelations?: boolean;
+      checkPublicPrivateVisibility?: boolean;
+    },
   ): Promise<Wonder | undefined> {
-    let sqlQuery = this.wonderRepository
-      .createQueryBuilder('wonder')
-      .where('wonder.userId = :userId', { userId: userId })
-      .where('wonder.id = :id', { id: id });
+    const {
+      userId,
+      withRelations = true,
+      checkPublicPrivateVisibility = false,
+    } = query;
 
-    if (withRelation) {
-      sqlQuery = sqlQuery
-        .leftJoinAndSelect('wonder.resources', 'resources')
-        .loadRelationCountAndMap('wonder.resourcesCount', 'wonder.resources');
-    }
+    const user = await this.getUser(userId);
 
-    const wonder = await sqlQuery.getOne();
+    let sqlBuilder = this.getSqlBuilder();
+    sqlBuilder = sqlBuilder.setWonderId(id);
+    if (user) sqlBuilder = sqlBuilder.setUserId(userId);
+    if (withRelations) sqlBuilder = sqlBuilder.setRelations();
+
+    const wonder = await sqlBuilder.findOne();
     if (wonder)
       wonder.coverPhotoUrl = await this.addCoverPhotoOfWonder(
         wonder.id,
@@ -117,7 +161,7 @@ export class WondersService {
     id: number,
     updateWonderDto: UpdateWonderDto,
   ): Promise<Wonder | undefined> {
-    const wonder = await this.findOne(id, updateWonderDto.userId);
+    const wonder = await this.findOne(id, { userId: updateWonderDto.userId });
 
     let visibility = null;
 
@@ -137,8 +181,8 @@ export class WondersService {
     return result;
   }
 
-  async remove(id: number, userId: string): Promise<any> {
-    await this.findOne(id, +userId);
+  async remove(id: number, userId: number): Promise<any> {
+    await this.findOne(id, { userId: userId });
     const result = await this.wonderRepository.delete(id);
     if (!result || result.affected === 0) throw new NotFoundException();
     return result;
@@ -158,38 +202,57 @@ export class WondersService {
     return coverPhotoUrl;
   }
 
-  async getAllCommonWonders(query: {
-    pageSize: number;
-    pageNumber: number;
-  }): Promise<Collection | undefined> {
-    const pageSize = query.pageSize
-      ? query.pageSize
-      : parseInt(this.configService.get('DEFAULT_PAGINATION_VALUE'));
-    const pageNumber = query.pageNumber ?? 1;
+  async getAllCommonWonders(
+    userId: number = null,
+    pagination: Pagination,
+  ): Promise<Collection | undefined> {
+    const {
+      pageSize,
+      skippedItems,
+      pageNumber,
+    } = this.paginationHelper.getPageSizeAndNumber(pagination);
 
-    const skippedItems = (pageNumber - 1) * pageSize;
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
 
-    const sqlQuery = this.wonderRepository
-      .createQueryBuilder('wonder')
-      .groupBy('wonder.title')
-      .where('wonder.visibilityId = :visiblityId', { visiblityId: 2 })
-      .orderBy('wonder.title', 'ASC');
+    let sqlBuilder = this.getSqlBuilder();
+    sqlBuilder = sqlBuilder.setGroupBy('title').setOrderBy('title', 'ASC');
 
-    const wonders = await sqlQuery.take(pageSize).skip(skippedItems).getMany();
-    const totalCount = await sqlQuery.getCount();
+    if (!userId)
+      sqlBuilder = sqlBuilder.setPublicVisibility(publicVisibility.id);
+    else
+      sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
+        null,
+        userId,
+        publicVisibility.id,
+      );
+
+    const wonders = await sqlBuilder
+      .setTake(pageSize)
+      .setSkip(skippedItems)
+      .findMany();
+
+    //https://github.com/typeorm/typeorm/issues/544
+    const totalRows = await sqlBuilder
+      .getQueryBuilder()
+      .select('COUNT(wonder.title) AS cnt')
+      .getRawMany();
+
+    const totalCount = totalRows.length;
 
     const data: Array<CommonWonderWithResourceInterface> = [];
-
     await Promise.all(
       wonders.map(async (wonder) => {
         const wonders = await this.wonderRepository.find({
           title: wonder.title,
-          visibilityId: 2,
         });
         const wonderIds = wonders.map((item) => item.id);
-        const resources = await this.resourceService.getResourcesWithWonderIds(
-          wonderIds,
-        );
+        const resourcesData = await this.resourceService.findAll(pagination, {
+          wonderIds: wonderIds,
+          checkPublicPrivateVisibility: true,
+          userId: userId,
+        });
+
+        const resources = resourcesData.items;
 
         data.push({
           title: wonder.title,
@@ -210,27 +273,48 @@ export class WondersService {
 
   async getCommonWonderWithResources(
     title: string,
+    userId: number = null,
   ): Promise<CommonWonderWithResourceInterface> {
-    const wonders = await this.getCommonWondersWithTitle(title);
+    const wonders = await this.getCommonWondersWithTitle(title, userId);
     const wonderIds = wonders.map((item) => item.id);
-    const resources = await this.resourceService.getResourcesWithWonderIds(
-      wonderIds,
+    const resources = await this.resourceService.findAll(
+      { pageNumber: null, pageSize: null },
+      {
+        wonderIds: wonderIds,
+        checkPublicPrivateVisibility: true,
+        withRelation: true,
+        userId: userId,
+      },
     );
     const data: CommonWonderWithResourceInterface = {
       title: title,
-      resources: resources,
-      resourcesCount: resources.length,
+      resources: resources.items,
+      resourcesCount: resources.items.length,
     };
 
     return data;
   }
 
-  async getCommonWondersWithTitle(title): Promise<Array<Wonder>> {
-    const sqlQuery = this.wonderRepository
-      .createQueryBuilder('wonder')
-      .where('wonder.title = :title', { title: title })
-      .andWhere('wonder.visibilityId = :visiblityId', { visiblityId: 2 });
-    const wonders = await sqlQuery.getMany();
+  async getCommonWondersWithTitle(
+    title,
+    userId: number = null,
+  ): Promise<Array<Wonder>> {
+    const publicVisibility = await this.visibilityService.getPublicVisibility();
+
+    let sqlBuilder = this.getSqlBuilder();
+    sqlBuilder = sqlBuilder.setParam('title', title);
+
+    if (!userId)
+      sqlBuilder = sqlBuilder.setPublicVisibility(publicVisibility.id);
+    else
+      sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
+        null,
+        userId,
+        publicVisibility.id,
+      );
+
+    const wonders = await sqlBuilder.findMany();
+    console.log(wonders);
     return wonders;
   }
 
@@ -256,5 +340,10 @@ export class WondersService {
     if (!userId) return null;
     const user = await this.userRepository.findOne(userId);
     return user;
+  }
+
+  getSqlBuilder() {
+    const wonderQuery = new WonderQuery(this.wonderRepository);
+    return wonderQuery.setQueryBuilder();
   }
 }

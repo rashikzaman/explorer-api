@@ -14,6 +14,7 @@ import {
 import { User } from '../../../users/models/entity/user.entity';
 import { ResourceType } from './resource-type.entity';
 import { Wonder } from '../../../wonders/models/entities/wonder.entity';
+import { Invite } from '../../../invite/models/entity/invite.entity';
 
 @Entity()
 export class Resource {
@@ -87,6 +88,9 @@ export class Resource {
 
   @Column()
   originalResourceId: number;
+
+  @OneToMany(() => Invite, (invite) => invite.resource)
+  invites: Invite[];
 
   @Column({
     type: 'timestamp',

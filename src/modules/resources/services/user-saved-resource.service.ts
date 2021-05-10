@@ -43,16 +43,14 @@ export class UserSavedResourceService {
     private readonly wondersService: WondersService,
     private readonly resourcesTypeService: ResourceTypesService,
     private readonly resourcesService: ResourcesService,
-  ) { }
+  ) {}
 
   async save(
     createUserSavedResourceDto: CreateUserSavedUserResourceDto,
   ): Promise<any | undefined> {
-    const resource: Resource = await this.resourcesService.findOne(
-      createUserSavedResourceDto.resourceId,
-      null,
-      false,
-    );
+    const resource: Resource = await this.resourcesService.findOne({
+      resourceId: createUserSavedResourceDto.resourceId,
+    });
     if (!resource) throw new BadRequestException('Resource not found');
 
     const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();

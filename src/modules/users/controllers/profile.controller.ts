@@ -16,13 +16,13 @@ export class ProfileController {
   @UserAuthFind()
   @Get()
   getProfile(@Request() req) {
-    return this.usersService.findOne(req.user.userId);
+    return this.usersService.findOne(req.user.id);
   }
 
   @UserAuthUpdate()
   @UseInterceptors(profleImageUploadInterceptor)
   @Put()
   updateProfile(@Body() profileUpdateDto: ProfileUpdateDto, @Request() req, @UploadedFile() file){
-    return this.usersService.update(req.user.userId, profileUpdateDto)
+    return this.usersService.update(req.user.id, profileUpdateDto)
   }
 }

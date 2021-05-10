@@ -6,20 +6,20 @@ import { Wonder } from './models/entities/wonder.entity';
 import { User } from '../users/models/entity/user.entity';
 import { VisibilityService } from '../visibility/services/visibility.service';
 import { Visibility } from '../visibility/models/entity/visibility.entity';
-import { WonderSearchService } from './services/wonder-search.service';
 import { ResourcesModule } from '../resources/resources.module';
 import { CommonWonderResourceService } from './services/common-wonder-resource.service';
 import { CommonWonderWithResource } from './models/entities/common-wonder-with-resource.entity';
 import { VisibilityModule } from '../visibility/visibility.module';
 import { Resource } from '../resources/models/entities/resource.entity';
+import { PaginationHelper } from '../core/helpers/pagination-helper';
 
 @Module({
   controllers: [WondersController],
   providers: [
     WondersService,
     VisibilityService,
-    WonderSearchService,
     CommonWonderResourceService,
+    PaginationHelper,
   ],
   imports: [
     TypeOrmModule.forFeature([
@@ -32,6 +32,6 @@ import { Resource } from '../resources/models/entities/resource.entity';
     forwardRef(() => ResourcesModule),
     VisibilityModule,
   ],
-  exports: [WondersService, WonderSearchService, CommonWonderResourceService],
+  exports: [WondersService, CommonWonderResourceService],
 })
 export class WondersModule {}

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../users/models/entity/user.entity';
-import { Brackets, In, Repository } from 'typeorm';
+import { Brackets, In, Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
 import { UpdateResourceDto } from '../models/dto/update-resource.dto';
 import { Resource } from '../models/entities/resource.entity';
@@ -28,9 +28,11 @@ import { ResourceTypesService } from './resource-types.service';
 import { CommonWonderWithResourceInterface } from '../../wonders/interfaces/common-wonder-with-resource.interface';
 import Pagination from '../../core/interfaces/pagination.interface';
 import { PaginationHelper } from '../../core/helpers/pagination-helper';
+import { ResourceQuery } from '../models/resource-query';
 
 @Injectable()
 export class ResourcesService {
+  resourceQuery: ResourceQuery;
   constructor(
     @InjectRepository(Resource)
     private resourceRepository: Repository<Resource>,
@@ -104,74 +106,79 @@ export class ResourcesService {
    * @param string userId
    */
   async findAll(
-    userId: string = null,
+    pagination: Pagination,
     query: {
-      pageSize: number;
-      pageNumber: number;
-      resourceTypeId: number;
-      wonderId: number;
-      searchTerm: string;
+      resourceTypeId?: number;
+      wonderId?: number;
+      searchTerm?: string;
+      userId?: number;
+      checkPublicPrivateVisibility?: boolean;
+      wonderIds?: Array<number>;
+      withRelation?: boolean;
     },
   ): Promise<Collection | undefined> {
-    const user = await this.getUser(userId);
     const {
       pageSize,
       skippedItems,
       pageNumber,
-    } = this.paginationHelper.getPageSizeAndNumber({
-      pageSize: query.pageSize,
-      pageNumber: query.pageSize,
-    });
+    } = this.paginationHelper.getPageSizeAndNumber(pagination);
 
-    const totalCount = await this.resourceRepository.count({
-      where: { ...(user && { user: user }) },
-    });
+    const {
+      resourceTypeId = null,
+      userId = null,
+      withRelation = true,
+      checkPublicPrivateVisibility = false,
+      wonderId = null,
+      searchTerm = null,
+      wonderIds = null,
+    } = { ...query };
 
-    let sqlQuery = await this.resourceRepository
-      .createQueryBuilder('resource')
-      .leftJoinAndSelect('resource.resourceType', 'resoureceType')
-      .leftJoinAndSelect('resource.visibility', 'visibility')
-      .leftJoinAndSelect('resource.wonder', 'wonder')
-      .loadRelationCountAndMap(
-        'resource.clonedResourcesCount',
-        'resource.clonedResources',
-      )
-      .where('resource.userId = :userId', { userId: userId });
+    const user = await this.getUser(userId);
 
-    if (query.resourceTypeId)
-      sqlQuery = sqlQuery.andWhere(
-        'resource.resourceTypeId = :resourceTypeId',
-        {
-          resourceTypeId: query.resourceTypeId,
-        },
-      );
+    this.resourceQuery = new ResourceQuery(this.resourceRepository);
+    let sqlBuilder = this.resourceQuery.setQueryBuilder();
 
-    if (query.wonderId) {
-      sqlQuery = sqlQuery.andWhere('resource.wonderId = :wonderId', {
-        wonderId: query.wonderId,
-      });
+    if (resourceTypeId) {
+      sqlBuilder = sqlBuilder.setResourceTypeId(resourceTypeId);
+    }
+    if (wonderId) {
+      sqlBuilder = sqlBuilder.setWonderId(wonderId);
     }
 
-    if (query.searchTerm) {
-      const searchTerm = query.searchTerm;
-      sqlQuery = sqlQuery.andWhere(
-        new Brackets((qb) => {
-          qb.where(
-            'MATCH(resource.title) AGAINST (:searchTerm IN NATURAL LANGUAGE MODE)',
-            { searchTerm: searchTerm },
-          ).orWhere(
-            'MATCH(resource.keywords) AGAINST (:searchTerm IN NATURAL LANGUAGE MODE)',
-            { searchTerm: searchTerm },
-          );
-        }),
-      );
+    if (wonderIds) {
+      sqlBuilder = sqlBuilder.setWonderIds(wonderIds);
     }
 
-    const resources = await sqlQuery
-      .take(pageSize)
-      .skip(skippedItems)
-      .getMany();
+    if (searchTerm) {
+      sqlBuilder = sqlBuilder.setSearchTerm(searchTerm);
+    }
 
+    if (withRelation) {
+      sqlBuilder = sqlBuilder.setRelations();
+    }
+
+    if (user && !checkPublicPrivateVisibility) {
+      sqlBuilder = sqlBuilder.setUserId(userId);
+    } else if (user && checkPublicPrivateVisibility) {
+      console.log(wonderIds);
+      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
+      sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
+        null,
+        userId,
+        publicVisibility.id,
+      );
+    } else if (!user && checkPublicPrivateVisibility) {
+      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
+      sqlBuilder = sqlBuilder.setPublicVisibility(publicVisibility.id);
+    }
+
+    const totalCount = await sqlBuilder.getQueryBuilder().getCount();
+    sqlBuilder = sqlBuilder
+      .setClonedResourceCount()
+      .setTake(pageSize)
+      .setSkip(skippedItems);
+
+    const resources = await sqlBuilder.findMany();
     const result = resources.map((item) => {
       return this.resourceHelper.prepareResourceAfterFetch(item);
     });
@@ -190,20 +197,47 @@ export class ResourcesService {
    * @param string id
    * @param user userId
    */
-  async findOne(
-    id: number,
-    userId: string = null,
-    withRelation = true,
-  ): Promise<Resource | any> {
-    const user = await this.getUser(userId);
-    const resource = await this.resourceRepository.findOne(id, {
-      relations: withRelation
-        ? ['resourceType', 'visibility', 'user', 'originalResource']
-        : [],
-      where: { ...(user && { user: user }) },
-    });
-    if (!resource) throw new NotFoundException();
-    return this.resourceHelper.prepareResourceAfterFetch(resource);
+  async findOne(query: {
+    resourceId: number;
+    userId?: number;
+    withRelation?: boolean;
+    checkPublicPrivateVisibility?: boolean;
+  }): Promise<Resource | any> {
+    const user = await this.getUser(query.userId);
+
+    const {
+      resourceId,
+      userId = null,
+      withRelation = true,
+      checkPublicPrivateVisibility = false,
+    } = { ...query };
+    this.resourceQuery = new ResourceQuery(this.resourceRepository);
+    let sqlBuilder = this.resourceQuery.setQueryBuilder();
+    sqlBuilder = sqlBuilder.setResourceId(resourceId);
+
+    if (user && !checkPublicPrivateVisibility) {
+      sqlBuilder = sqlBuilder.setUserId(userId);
+    } else if (user && checkPublicPrivateVisibility) {
+      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
+
+      sqlBuilder = sqlBuilder.setPublicPrivateVisibility(
+        resourceId,
+        userId,
+        publicVisibility.id,
+      );
+    } else if (!user && checkPublicPrivateVisibility) {
+      const publicVisibility: Visibility = await this.visibilityService.getPublicVisibility();
+      sqlBuilder = sqlBuilder.setPublicVisibility(publicVisibility.id);
+    }
+
+    if (withRelation) {
+      sqlBuilder = sqlBuilder.setRelations().setClonedResourceCount();
+    }
+
+    const resource = await sqlBuilder.findOne();
+    if (resource)
+      return this.resourceHelper.prepareResourceAfterFetch(resource);
+    return null;
   }
 
   async update(
@@ -308,13 +342,12 @@ export class ResourcesService {
           resources: [],
           resourcesCount: 0,
         };
-        const data: Collection = await this.getPublicAndInvitedOnlyResources(
-          userId,
-          pagination,
-          type.id,
-          null,
-          wonderIds,
-        );
+        const data = await this.findAll(pagination, {
+          userId: userId,
+          resourceTypeId: type.id,
+          checkPublicPrivateVisibility: true,
+          wonderIds: wonderIds,
+        });
         tempData.resources = data.items;
         tempData.resourcesCount = data.totalCount;
         return tempData;
@@ -337,82 +370,6 @@ export class ResourcesService {
     return resource;
   }
 
-  async getPublicAndInvitedOnlyResources(
-    userId: number,
-    pagination: Pagination,
-    resourceTypeId: number = null,
-    wonderId: number = null,
-    wonderIds: Array<number> = null,
-  ): Promise<Collection | undefined> {
-    const {
-      pageSize,
-      skippedItems,
-      pageNumber,
-    } = this.paginationHelper.getPageSizeAndNumber(pagination);
-
-    const publicVisibility = await this.visibilityService.getPublicVisibility();
-    let sqlQuery = await this.resourceRepository
-      .createQueryBuilder('resource')
-      .leftJoinAndSelect('resource.resourceType', 'resoureceType')
-      .leftJoinAndSelect('resource.visibility', 'visibility')
-      .leftJoinAndSelect('resource.wonder', 'wonder')
-      .loadRelationCountAndMap(
-        'resource.clonedResourcesCount',
-        'resource.clonedResources',
-      )
-      .where('resource.visibilityId = :visibilityId', {
-        visibilityId: publicVisibility.id,
-      });
-
-    if (resourceTypeId) {
-      sqlQuery = sqlQuery.andWhere('resource.resourceTypeId =:resourceTypeId', {
-        resourceTypeId: resourceTypeId,
-      });
-    }
-
-    if (wonderId) {
-      sqlQuery = sqlQuery.andWhere('resource.wonderId =:wonderId', {
-        wonderId: wonderId,
-      });
-    }
-
-    if (wonderIds && wonderIds.length) {
-      sqlQuery = sqlQuery.andWhere('resource.wonderId In (:wonderIds)', {
-        wonderIds: wonderIds,
-      });
-    }
-
-    const resources = await sqlQuery
-      .take(pageSize)
-      .skip(skippedItems)
-      .getMany();
-    const totalCount = await sqlQuery.getCount();
-
-    resources.map((item) => {
-      return this.resourceHelper.prepareResourceAfterFetch(item);
-    });
-
-    return {
-      items: resources,
-      pageNumber:
-        typeof pageNumber === 'string' ? parseInt(pageNumber) : pageNumber,
-      pageSize: typeof pageSize === 'string' ? parseInt(pageSize) : pageSize,
-      totalCount: totalCount,
-    };
-  }
-
-  async getResourcesWithWonderIds(
-    wonderIds: Array<number>,
-  ): Promise<Array<Resource>> {
-    const resources = await this.resourceRepository.find({
-      where: { wonderId: In(wonderIds) },
-    });
-    resources.map((resource) =>
-      this.resourceHelper.prepareResourceAfterFetch(resource),
-    );
-    return resources;
-  }
-
   async getWonder(
     wonderId: number | null,
     userId: number,
@@ -420,7 +377,10 @@ export class ResourcesService {
     let wonder = null;
 
     if (wonderId) {
-      wonder = await this.wondersService.findOne(wonderId, userId, false);
+      wonder = await this.wondersService.findOne(wonderId, {
+        userId: userId,
+        withRelations: false,
+      });
       if (!wonder)
         throw new BadRequestException({ message: 'Wonder not found' });
     } else {

@@ -12,6 +12,7 @@ import {
 
 import { User } from '../../../users/models/entity/user.entity';
 import { Visibility } from '../../../visibility/models/entity/visibility.entity';
+import { Invite } from '../../../invite/models/entity/invite.entity';
 
 @Entity()
 export class Wonder {
@@ -45,6 +46,9 @@ export class Wonder {
   @OneToMany(() => Resource, (resource) => resource.wonder)
   resources: Resource[];
   resourcesCount: number;
+
+  @OneToMany(() => Invite, (invite) => invite.wonder)
+  invites: Invite[];
 
   @Column({
     type: 'timestamp',

@@ -14,7 +14,6 @@ import { WebsiteResourceTypeController } from './controllers/website-resource-ty
 import { WebsiteResourceTypeService } from './services/website-resource-type.service';
 import { ConfigService } from '@nestjs/config';
 import { S3FileService } from '../aws/s3/services/s3-file.service';
-import { ResourceSearchService } from './services/resource-search.service';
 import { ResourceHelper } from './helpers/resource-helper';
 import { Wonder } from '../wonders/models/entities/wonder.entity';
 import { VisibilityModule } from '../visibility/visibility.module';
@@ -34,7 +33,6 @@ import { PaginationHelper } from '../core/helpers/pagination-helper';
     WebsiteResourceTypeService,
     ConfigService,
     S3FileService,
-    ResourceSearchService,
     ResourceHelper,
     UserSavedResourceService,
     PaginationHelper,
@@ -51,6 +49,6 @@ import { PaginationHelper } from '../core/helpers/pagination-helper';
     VisibilityModule,
     forwardRef(() => WondersModule),
   ],
-  exports: [ResourcesService, ResourceSearchService, ResourceHelper],
+  exports: [ResourcesService, ResourceHelper],
 })
 export class ResourcesModule {}

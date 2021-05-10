@@ -12,6 +12,7 @@ import {
   UploadedFiles,
   UploadedFile,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { ResourcesService } from '../services/resources.service';
 import { CreateResourceDto } from '../models/dto/create-resource.dto';
@@ -35,7 +36,6 @@ import { S3FileService } from '../../aws/s3/services/s3-file.service';
 import { ApiQuery } from '@nestjs/swagger';
 import { UserSavedResourceService } from '../services/user-saved-resource.service';
 import { CreateUserSavedUserResourceDto } from '../models/dto/create-user-saved-resource.dto';
-import { DeleteUserSavedUserResourceDto } from '../models/dto/delete-user-saved-resource.dto';
 import { ResourceTypesService } from '../services/resource-types.service';
 
 @Controller('resources')
@@ -74,7 +74,7 @@ export class ResourcesController {
 
     createResourceDto.image = image;
     createResourceDto.audioClip = audioClip;
-    createResourceDto.userId = req.user.userId;
+    createResourceDto.userId = req.user.id;
     const result = this.resourcesService.create(createResourceDto);
     return result;
   }
@@ -86,7 +86,7 @@ export class ResourcesController {
   @ApiQuery({ name: 'resourceTypeId' })
   @ApiQuery({ name: 'wonderId' })
   @ApiQuery({ name: 'searchTerm' })
-  findAll(
+  async findAll(
     @Request() req,
     @Query()
     query: {
@@ -97,20 +97,33 @@ export class ResourcesController {
       searchTerm: string;
     },
   ) {
-    return this.resourcesService.findAll(req.user.userId, query);
+    return this.resourcesService.findAll(
+      { pageSize: query.pageSize, pageNumber: query.pageNumber },
+      {
+        resourceTypeId: query.resourceTypeId,
+        wonderId: query.wonderId,
+        searchTerm: query.searchTerm,
+        userId: req.user.id,
+      },
+    );
   }
 
   @Get(':id')
   @UserAuthFind()
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.resourcesService.findOne(+id, req.user.userId);
+  async findOne(@Param('id') id: string, @Request() req) {
+    const resource = await this.resourcesService.findOne({
+      resourceId: +id,
+      userId: req.user.id,
+    });
+    if (!resource) throw new NotFoundException('Resource not found!');
+    return resource;
   }
 
   @Put(':id')
   @UserAuthUpdate()
   @UseInterceptors(resourceFileUploadInterceptor)
   @UsePipes(new JoiValidationPipe(updateResourceSchema))
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateResourceDto: UpdateResourceDto,
     @UploadedFiles() files,
@@ -118,14 +131,14 @@ export class ResourcesController {
   ) {
     updateResourceDto.image = files.image ? files.image[0] : null;
     updateResourceDto.audioClip = files.audioClip ? files.audioClip[0] : null;
-    updateResourceDto.userId = req.user.userId;
+    updateResourceDto.userId = req.user.id;
     return this.resourcesService.update(+id, updateResourceDto);
   }
 
   @Delete(':id')
   @UserAuthDelete()
   async remove(@Param('id') id: string, @Request() req: any) {
-    const result = await this.resourcesService.remove(+id, req.user.userId);
+    const result = await this.resourcesService.remove(+id, req.user.id);
     if (result) return { message: 'Resource deleted', status: 'success' };
     else return { message: "Can't delete the resource", status: 'failure' };
   }
@@ -140,13 +153,12 @@ export class ResourcesController {
     @Query() query: { wonderId: number; pageSize: number; pageNumber: number },
   ) {
     return this.resourceTypesService.groupUserResourcesByResourceType(
-      +req.user.userId,
+      +req.user.id,
       query,
     );
   }
 
   @Post(':id/save')
-  @ApiQuery({ name: 'resourceId' })
   @ApiQuery({ name: 'userId' })
   @UserAuthCreate()
   async saveResource(
@@ -154,7 +166,7 @@ export class ResourcesController {
     @Request() req: any,
     @Param('id') id: string,
   ) {
-    createUserSavedResourceDto.userId = req.user.userId;
+    createUserSavedResourceDto.userId = req.user.id;
     createUserSavedResourceDto.resourceId = +id;
     return this.userSavedResourceService.save(createUserSavedResourceDto);
   }
